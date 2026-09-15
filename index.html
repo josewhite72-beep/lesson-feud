@@ -1,0 +1,2370 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson Feud</title>
+  <link rel="icon" type="image/x-icon" href="icons/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#6366f1">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface-light: #334155;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #475569;
+      --radius: 12px;
+      --shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; line-height: 1.6;
+    }
+    .app { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 40px; padding: 20px;
+      background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow);
+    }
+    .logo {
+      font-size: 2rem; font-weight: bold;
+      background: linear-gradient(135deg, var(--primary), #ec4899);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .lang-selector { display: flex; gap: 10px; }
+    .lang-btn {
+      padding: 8px 16px; background: var(--surface-light);
+      border: 2px solid transparent; border-radius: 8px;
+      color: var(--text); cursor: pointer; font-size: 1rem; transition: all 0.2s;
+    }
+    .lang-btn:hover { background: var(--border); }
+    .lang-btn.active { background: var(--primary); border-color: var(--primary-dark); }
+    .screen { display: none; animation: fadeIn 0.3s; }
+    .screen.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .welcome { text-align: center; padding: 60px 20px; }
+    .welcome h1 {
+      font-size: 3rem; margin-bottom: 20px;
+      background: linear-gradient(135deg, var(--primary), #ec4899);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .welcome p { font-size: 1.2rem; color: var(--text-muted); margin-bottom: 40px; }
+    .btn-group { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      padding: 16px 32px; font-size: 1.1rem; font-weight: 600;
+      border: none; border-radius: var(--radius); cursor: pointer;
+      transition: all 0.2s; box-shadow: var(--shadow);
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+    .btn-secondary { background: var(--surface-light); color: var(--text); }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-warning { background: var(--warning); color: white; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .panel {
+      background: var(--surface); border-radius: var(--radius);
+      padding: 30px; box-shadow: var(--shadow); margin-bottom: 20px;
+    }
+    .panel h2 { margin-bottom: 30px; font-size: 2rem; }
+    .panel h3 { margin-bottom: 20px; font-size: 1.3rem; color: var(--primary); }
+    .tabs {
+      display: flex; gap: 10px; margin-bottom: 30px;
+      border-bottom: 2px solid var(--border); flex-wrap: wrap;
+    }
+    .tab {
+      padding: 12px 24px; background: transparent; border: none;
+      color: var(--text-muted); cursor: pointer; font-size: 1rem;
+      font-weight: 600; border-bottom: 3px solid transparent; transition: all 0.2s;
+    }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .format-example {
+      background: var(--bg); padding: 15px; border-radius: 8px;
+      margin-bottom: 20px; font-family: 'Courier New', monospace;
+      font-size: 0.9rem; color: var(--text-muted); border-left: 4px solid var(--primary);
+    }
+    .input-group { margin-bottom: 20px; }
+    .input-label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text); }
+    textarea {
+      width: 100%; min-height: 200px; padding: 15px;
+      background: var(--bg); border: 2px solid var(--border);
+      border-radius: 8px; color: var(--text);
+      font-family: 'Courier New', monospace; font-size: 0.95rem; resize: vertical;
+    }
+    textarea:focus { outline: none; border-color: var(--primary); }
+    .file-upload {
+      display: flex; align-items: center; gap: 10px; margin-top: 10px;
+      padding: 12px; background: var(--bg); border: 2px dashed var(--border); border-radius: 8px;
+    }
+    .file-upload:hover { border-color: var(--primary); }
+    .file-upload-label {
+      display: flex; align-items: center; gap: 8px; padding: 8px 16px;
+      background: var(--primary); color: white; border-radius: 6px;
+      cursor: pointer; font-weight: 600; transition: all 0.2s;
+    }
+    .file-upload-label:hover { background: var(--primary-dark); }
+    .file-upload input[type="file"] { display: none; }
+    .file-upload-text { color: var(--text-muted); font-size: 0.9rem; }
+    .file-name { margin-left: auto; color: var(--success); font-weight: 600; }
+    .preview-section { margin-top: 30px; padding: 20px; background: var(--bg); border-radius: 8px; }
+    .preview-section h3 { margin-bottom: 15px; color: var(--success); }
+    .question-preview {
+      background: var(--surface-light); padding: 12px;
+      margin-bottom: 10px; border-radius: 6px; font-size: 0.9rem;
+    }
+    .question-preview strong { color: var(--primary); }
+    .saved-sets { margin-top: 30px; padding: 20px; background: var(--bg); border-radius: 8px; }
+    .saved-sets h3 { margin-bottom: 15px; }
+    .set-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px; background: var(--surface-light); margin-bottom: 10px;
+      border-radius: 6px; flex-wrap: wrap; gap: 10px;
+    }
+    .set-item button {
+      padding: 6px 12px; font-size: 0.85rem; color: white;
+      border: none; border-radius: 4px; cursor: pointer;
+    }
+    .form-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px; margin-bottom: 30px;
+    }
+    .form-group { background: var(--bg); padding: 20px; border-radius: 8px; }
+    .form-group label { display: block; margin-bottom: 10px; font-weight: 600; color: var(--text); }
+    .form-group input[type="text"], .form-group select {
+      width: 100%; padding: 10px 14px; background: var(--surface);
+      border: 2px solid var(--border); border-radius: 6px; color: var(--text); font-size: 1rem;
+    }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); }
+    .toggle-group { display: flex; gap: 10px; flex-wrap: wrap; }
+    .toggle-option {
+      flex: 1; min-width: 100px; padding: 12px; background: var(--surface);
+      border: 2px solid var(--border); border-radius: 6px; color: var(--text);
+      cursor: pointer; text-align: center; font-weight: 600; transition: all 0.2s;
+    }
+    .toggle-option:hover { border-color: var(--primary); }
+    .toggle-option.active { background: var(--primary); border-color: var(--primary-dark); color: white; }
+    .switch { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+    .switch-slider {
+      width: 50px; height: 26px; background: var(--border);
+      border-radius: 13px; position: relative; transition: all 0.2s;
+    }
+    .switch-slider::after {
+      content: ''; position: absolute; width: 20px; height: 20px;
+      background: white; border-radius: 50%; top: 3px; left: 3px; transition: all 0.2s;
+    }
+    .switch.active .switch-slider { background: var(--primary); }
+    .switch.active .switch-slider::after { left: 27px; }
+    .bg-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px; margin-bottom: 20px;
+    }
+    .bg-card {
+      aspect-ratio: 16/10; border-radius: 10px; cursor: pointer;
+      position: relative; overflow: hidden; border: 3px solid transparent;
+      transition: all 0.2s; display: flex; align-items: center;
+      justify-content: center; font-weight: 600; color: white;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+    .bg-card:hover { transform: translateY(-3px); }
+    .bg-card.active { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3); }
+    .bg-card-label {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: rgba(0,0,0,0.6); padding: 4px 8px; font-size: 0.8rem; text-align: center;
+    }
+    .color-presets {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px; margin-bottom: 20px;
+    }
+    .color-preset {
+      display: flex; align-items: center; gap: 10px; padding: 12px;
+      background: var(--bg); border: 2px solid var(--border);
+      border-radius: 8px; cursor: pointer; transition: all 0.2s;
+    }
+    .color-preset:hover { border-color: var(--primary); }
+    .color-preset.active { border-color: var(--primary); background: var(--surface-light); }
+    .color-dot { width: 30px; height: 30px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); }
+    .color-inputs { display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
+    .color-input-group { display: flex; align-items: center; gap: 8px; }
+    .color-input-group input[type="color"] {
+      width: 50px; height: 40px; border: none; border-radius: 6px;
+      cursor: pointer; background: transparent;
+    }
+    .preview-box {
+      margin-top: 20px; height: 200px; border-radius: 12px;
+      position: relative; overflow: hidden; display: flex;
+      align-items: center; justify-content: center; border: 2px solid var(--border);
+    }
+    .preview-teams { display: flex; gap: 20px; align-items: center; z-index: 2; }
+    .preview-team {
+      padding: 15px 25px; border-radius: 10px; font-weight: bold;
+      color: white; font-size: 1.1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .preview-vs { font-size: 1.5rem; font-weight: bold; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+    .mode-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px; margin-bottom: 30px;
+    }
+    .mode-card {
+      background: var(--bg); border: 3px solid var(--border);
+      border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s;
+    }
+    .mode-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+    .mode-card.active {
+      border-color: var(--primary); background: var(--surface-light);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+    }
+    .mode-preview {
+      height: 120px; background: var(--surface); border-radius: 8px;
+      margin-bottom: 15px; position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mode-card h4 { font-size: 1.2rem; margin-bottom: 8px; color: var(--primary); }
+    .mode-card p { font-size: 0.9rem; color: var(--text-muted); }
+    .mini-rope {
+      width: 80%; height: 6px;
+      background: linear-gradient(90deg, #8b4513, #d2691e, #8b4513);
+      border-radius: 3px; position: relative;
+    }
+    .mini-flag {
+      position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 10px solid transparent; border-right: 10px solid transparent;
+      border-bottom: 15px solid #ef4444;
+    }
+    .mini-territory {
+      width: 80%; height: 20px; background: var(--border);
+      border-radius: 4px; position: relative; overflow: hidden;
+    }
+    .mini-territory-fill {
+      position: absolute; left: 0; top: 0; bottom: 0; width: 50%;
+      background: linear-gradient(90deg, var(--primary), #ec4899); transition: width 0.3s;
+    }
+    .mini-physics {
+      width: 80%; height: 6px;
+      background: linear-gradient(90deg, #8b4513, #d2691e, #8b4513);
+      border-radius: 3px; position: relative; transform: perspective(200px) rotateX(10deg);
+    }
+
+    /* ═══════════════ GAME SCREEN ═══════════════ */
+    .game-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px; background: var(--surface); border-radius: var(--radius);
+      margin-bottom: 20px; box-shadow: var(--shadow); flex-wrap: wrap; gap: 15px;
+    }
+    .team-info { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+    .team-name { font-size: 1.3rem; font-weight: bold; }
+    .team-score {
+      font-size: 2rem; font-weight: bold; padding: 8px 16px;
+      border-radius: 8px; background: var(--bg); min-width: 60px; text-align: center;
+    }
+    .powerup-indicator { display: flex; gap: 5px; min-height: 40px; align-items: center; }
+    .powerup-icon {
+      font-size: 1.5rem; padding: 5px 8px; background: var(--warning);
+      border-radius: 6px; animation: pulse 1.5s infinite; cursor: help;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+    .streak-badge {
+      padding: 4px 10px; background: var(--warning); color: white;
+      border-radius: 12px; font-size: 0.85rem; font-weight: bold;
+    }
+    .pc-thinking {
+      display: none; padding: 10px 20px; background: var(--surface-light);
+      border-radius: 8px; font-size: 1rem; color: var(--text-muted);
+      animation: thinking 1s infinite;
+    }
+    .pc-thinking.active { display: inline-block; }
+    @keyframes thinking {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+    .question-area {
+      background: var(--surface); padding: 30px; border-radius: var(--radius);
+      margin-bottom: 20px; box-shadow: var(--shadow); text-align: center;
+    }
+    .question-text {
+      font-size: 1.8rem; font-weight: 600; margin-bottom: 20px; line-height: 1.4;
+    }
+    .question-options {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px; margin-top: 20px;
+    }
+    .option-btn {
+      padding: 18px; background: var(--bg); border: 3px solid var(--border);
+      border-radius: 10px; color: var(--text); font-size: 1.1rem;
+      cursor: pointer; transition: all 0.2s; font-weight: 500;
+    }
+    .option-btn:hover:not(:disabled) { border-color: var(--primary); background: var(--surface-light); transform: translateY(-2px); }
+    .option-btn.correct {
+      background: var(--success); border-color: var(--success); color: white;
+      animation: correctPop 0.5s;
+    }
+    .option-btn.incorrect {
+      background: var(--danger); border-color: var(--danger); color: white;
+      animation: shake 0.5s;
+    }
+    .option-btn.pc-selected {
+      border-color: var(--warning); border-width: 4px;
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+    }
+    .option-btn:disabled { cursor: not-allowed; }
+    @keyframes correctPop {
+      0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    .vocab-answer-area {
+      margin-top: 20px; padding: 20px; background: var(--bg);
+      border-radius: 10px; display: none;
+    }
+    .vocab-answer-area.visible { display: block; }
+    .vocab-answer-display {
+      font-size: 1.5rem; color: var(--success); font-weight: bold;
+      padding: 15px; background: var(--surface); border-radius: 8px;
+      margin-bottom: 15px;
+    }
+    .tts-btn {
+      padding: 10px 20px; background: var(--primary); border: none;
+      border-radius: 8px; color: white; font-size: 1.2rem;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .tts-btn:hover { background: var(--primary-dark); }
+    .canvas-container {
+      background: var(--surface); border-radius: var(--radius);
+      padding: 20px; margin-bottom: 20px; box-shadow: var(--shadow); position: relative;
+    }
+    #game-canvas { width: 100%; height: 400px; border-radius: 8px; display: block; }
+    .game-controls {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;
+    }
+    .game-controls.single-player {
+      grid-template-columns: 1fr;
+    }
+    .team-controls { display: flex; flex-direction: column; gap: 10px; }
+    .score-btn {
+      padding: 20px; border: none; border-radius: var(--radius);
+      font-size: 1.1rem; font-weight: bold; color: white;
+      cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow);
+    }
+    .score-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 40px rgba(0,0,0,0.4); }
+    .score-btn:active:not(:disabled) { transform: translateY(0); }
+    .score-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .game-footer {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 15px; background: var(--surface); border-radius: var(--radius);
+      flex-wrap: wrap; gap: 10px;
+    }
+    .question-counter { font-size: 1.1rem; color: var(--text-muted); }
+
+    /* ═══════════════ MODAL ═══════════════ */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.8); z-index: 1000;
+      align-items: center; justify-content: center; padding: 20px;
+      animation: fadeIn 0.3s;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: var(--surface); border-radius: var(--radius);
+      padding: 30px; max-width: 500px; width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      animation: modalPop 0.3s;
+    }
+    @keyframes modalPop {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .modal h2 { margin-bottom: 20px; text-align: center; }
+    .modal p { color: var(--text-muted); text-align: center; margin-bottom: 20px; }
+    .powerup-options {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px; margin-bottom: 20px;
+    }
+    .powerup-option {
+      padding: 15px; background: var(--bg); border: 2px solid var(--border);
+      border-radius: 10px; cursor: pointer; text-align: center;
+      transition: all 0.2s;
+    }
+    .powerup-option:hover { border-color: var(--warning); transform: translateY(-2px); }
+    .powerup-option .emoji { font-size: 2.5rem; display: block; margin-bottom: 8px; }
+    .powerup-option .name { font-weight: bold; margin-bottom: 4px; }
+    .powerup-option .desc { font-size: 0.8rem; color: var(--text-muted); }
+
+    /* ═══════════════ FINAL SCREEN ═══════════════ */
+    .final-screen {
+      text-align: center; padding: 40px 20px; position: relative;
+    }
+    .final-trophy {
+      font-size: 8rem; margin-bottom: 20px;
+      animation: trophyBounce 1s ease-out;
+    }
+    @keyframes trophyBounce {
+      0% { transform: scale(0) rotate(-180deg); }
+      50% { transform: scale(1.2) rotate(10deg); }
+      100% { transform: scale(1) rotate(0); }
+    }
+    .final-winner {
+      font-size: 3rem; font-weight: bold; margin-bottom: 10px;
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .final-subtitle { font-size: 1.3rem; color: var(--text-muted); margin-bottom: 40px; }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px; margin-bottom: 40px;
+    }
+    .stat-card {
+      background: var(--surface); padding: 20px; border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .stat-label { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 5px; }
+    .stat-value { font-size: 2rem; font-weight: bold; color: var(--primary); }
+    .stat-card.team1 { border-left: 5px solid var(--team1-color, #ef4444); }
+    .stat-card.team2 { border-left: 5px solid var(--team2-color, #3b82f6); }
+    #confetti-canvas {
+      position: fixed; inset: 0; pointer-events: none; z-index: 999;
+    }
+
+    @media (max-width: 768px) {
+      .header { flex-direction: column; gap: 15px; }
+      .welcome h1 { font-size: 2rem; }
+      .btn-group { flex-direction: column; }
+      .tabs { flex-direction: column; }
+      .file-upload { flex-direction: column; align-items: flex-start; }
+      .file-name { margin-left: 0; }
+      .panel { padding: 20px; }
+      .panel h2 { font-size: 1.5rem; }
+      .bg-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+      .game-header { flex-direction: column; gap: 15px; }
+      .question-text { font-size: 1.3rem; }
+      .game-controls { grid-template-columns: 1fr; }
+      #game-canvas { height: 300px; }
+      .final-trophy { font-size: 5rem; }
+      .final-winner { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header">
+      <div class="logo">🎯 Lesson Feud</div>
+      <div class="lang-selector">
+        <button class="lang-btn active" data-lang="es" onclick="UI.setLanguage('es')">🇪🇸 ES</button>
+        <button class="lang-btn" data-lang="en" onclick="UI.setLanguage('en')">🇬🇧 EN</button>
+      </div>
+    </div>
+
+    <div id="screen-home" class="screen active">
+      <div class="welcome">
+        <h1 data-i18n="welcome_title">¡Bienvenido a Lesson Feud!</h1>
+        <p data-i18n="welcome_subtitle">Juego de repaso tipo tira y afloja para el aula</p>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="UI.showScreen('import')" data-i18n="btn_new_game">Nueva partida</button>
+          <button class="btn btn-secondary" onclick="UI.loadSavedSets()" data-i18n="btn_load_saved">Cargar set guardado</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="screen-import" class="screen">
+      <div class="panel">
+        <h2 data-i18n="import_title">Importar contenido</h2>
+        <div class="tabs">
+          <button class="tab active" data-tab="text" onclick="UI.switchTab('text')" data-i18n="tab_text">Texto simple</button>
+          <button class="tab" data-tab="csv" onclick="UI.switchTab('csv')" data-i18n="tab_csv">CSV</button>
+          <button class="tab" data-tab="json" onclick="UI.switchTab('json')" data-i18n="tab_json">JSON</button>
+          <button class="tab" data-tab="quizlet" onclick="UI.switchTab('quizlet')" data-i18n="tab_quizlet">Quizlet/Anki</button>
+        </div>
+        <div id="tab-text" class="tab-content active">
+          <div class="format-example">
+            <strong data-i18n="format_text_title">Formato:</strong><br>
+            Pregunta | Opción A | Opción B | Opción C | Opción D | Letra correcta<br><br>
+            <em data-i18n="format_text_example">Ejemplo:</em><br>
+            ¿Capital de Francia? | Madrid | París | Roma | Londres | B
+          </div>
+          <div class="input-group">
+            <label class="input-label" data-i18n="label_paste">Pegar contenido:</label>
+            <textarea id="input-text" placeholder="Pega aquí tu contenido..."></textarea>
+          </div>
+          <div class="file-upload">
+            <label class="file-upload-label" for="file-text">📁 <span data-i18n="btn_upload_file">Subir archivo</span></label>
+            <input type="file" id="file-text" accept=".txt,.csv,.json" onchange="FILE_UPLOAD.handleFile(this, 'text')">
+            <span class="file-upload-text" data-i18n="upload_hint_text">o sube un archivo .txt</span>
+            <span class="file-name" id="file-name-text"></span>
+          </div>
+        </div>
+        <div id="tab-csv" class="tab-content">
+          <div class="format-example"><strong data-i18n="format_csv_title">Formato CSV:</strong><br>pregunta,opcionA,opcionB,opcionC,opcionD,correcta</div>
+          <div class="input-group">
+            <label class="input-label" data-i18n="label_paste">Pegar contenido:</label>
+            <textarea id="input-csv" placeholder="Pega aquí tu CSV..."></textarea>
+          </div>
+          <div class="file-upload">
+            <label class="file-upload-label" for="file-csv">📁 <span data-i18n="btn_upload_file">Subir archivo</span></label>
+            <input type="file" id="file-csv" accept=".csv,.txt" onchange="FILE_UPLOAD.handleFile(this, 'csv')">
+            <span class="file-upload-text" data-i18n="upload_hint_csv">o sube un archivo .csv</span>
+            <span class="file-name" id="file-name-csv"></span>
+          </div>
+        </div>
+        <div id="tab-json" class="tab-content">
+          <div class="format-example"><strong data-i18n="format_json_title">Formato JSON:</strong><br>[{ "prompt": "...", "options": [...], "answer": "..." }]</div>
+          <div class="input-group">
+            <label class="input-label" data-i18n="label_paste">Pegar contenido:</label>
+            <textarea id="input-json" placeholder="Pega aquí tu JSON..."></textarea>
+          </div>
+          <div class="file-upload">
+            <label class="file-upload-label" for="file-json">📁 <span data-i18n="btn_upload_file">Subir archivo</span></label>
+            <input type="file" id="file-json" accept=".json" onchange="FILE_UPLOAD.handleFile(this, 'json')">
+            <span class="file-upload-text" data-i18n="upload_hint_json">o sube un archivo .json</span>
+            <span class="file-name" id="file-name-json"></span>
+          </div>
+        </div>
+        <div id="tab-quizlet" class="tab-content">
+          <div class="format-example"><strong data-i18n="format_quizlet_title">Formato vocabulario:</strong><br>término - definición<br>término [tab] definición</div>
+          <div class="input-group">
+            <label class="input-label" data-i18n="label_paste">Pegar contenido:</label>
+            <textarea id="input-quizlet" placeholder="Pega aquí tu vocabulario..."></textarea>
+          </div>
+          <div class="file-upload">
+            <label class="file-upload-label" for="file-quizlet">📁 <span data-i18n="btn_upload_file">Subir archivo</span></label>
+            <input type="file" id="file-quizlet" accept=".txt,.csv" onchange="FILE_UPLOAD.handleFile(this, 'quizlet')">
+            <span class="file-upload-text" data-i18n="upload_hint_quizlet">o sube un archivo .txt</span>
+            <span class="file-name" id="file-name-quizlet"></span>
+          </div>
+        </div>
+        <div class="btn-group" style="margin-top: 30px;">
+          <button class="btn btn-primary" onclick="PARSERS.processCurrentTab()" data-i18n="btn_process">Procesar y validar</button>
+          <button class="btn btn-secondary" onclick="UI.showScreen('home')" data-i18n="btn_cancel">Cancelar</button>
+        </div>
+        <div id="preview-section" class="preview-section" style="display: none;">
+          <h3 data-i18n="preview_title">✅ Preguntas detectadas:</h3>
+          <div id="preview-list"></div>
+          <div class="btn-group" style="margin-top: 20px;">
+            <button class="btn btn-primary" onclick="STORAGE.saveCurrentSet()" data-i18n="btn_save_set">Guardar set</button>
+            <button class="btn btn-primary" onclick="UI.showScreen('config')" data-i18n="btn_continue">Continuar →</button>
+          </div>
+        </div>
+        <div id="saved-sets-section" class="saved-sets" style="display: none;">
+          <h3 data-i18n="saved_sets_title">Sets guardados:</h3>
+          <div id="saved-sets-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="screen-config" class="screen">
+      <div class="panel">
+        <h2 data-i18n="config_title">⚙️ Configuración de la partida</h2>
+        
+        <h3 data-i18n="label_game_mode">🎮 Modo de juego</h3>
+        <div class="toggle-group" id="game-mode-toggle" style="margin-bottom: 30px;">
+          <div class="toggle-option active" data-value="teams" onclick="CONFIG.setGameMode('teams')" data-i18n="mode_teams">2 Equipos</div>
+          <div class="toggle-option" data-value="single" onclick="CONFIG.setGameMode('single')" data-i18n="mode_single">1 Jugador vs PC</div>
+        </div>
+
+        <div id="teams-config">
+          <div class="form-grid">
+            <div class="form-group">
+              <label data-i18n="label_team1_name">Nombre Equipo 1:</label>
+              <input type="text" id="team1-name" value="Equipo 1" maxlength="20">
+            </div>
+            <div class="form-group">
+              <label data-i18n="label_team2_name">Nombre Equipo 2:</label>
+              <input type="text" id="team2-name" value="Equipo 2" maxlength="20">
+            </div>
+          </div>
+        </div>
+
+        <div id="single-config" style="display: none;">
+          <div class="form-grid">
+            <div class="form-group">
+              <label data-i18n="label_player_name">Nombre del jugador:</label>
+              <input type="text" id="player-name" value="Jugador" maxlength="20">
+            </div>
+            <div class="form-group">
+              <label data-i18n="label_pc_difficulty">Dificultad del PC:</label>
+              <select id="pc-difficulty">
+                <option value="easy" data-i18n="difficulty_easy">Fácil (30% precisión)</option>
+                <option value="medium" selected data-i18n="difficulty_medium">Medio (60% precisión)</option>
+                <option value="hard" data-i18n="difficulty_hard">Difícil (90% precisión)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <h3 data-i18n="label_target_score">🎯 Meta de la partida (nodos para ganar)</h3>
+        <div class="toggle-group" id="target-toggle">
+          <div class="toggle-option" data-value="5" onclick="CONFIG.setTarget(5)">5</div>
+          <div class="toggle-option active" data-value="10" onclick="CONFIG.setTarget(10)">10</div>
+          <div class="toggle-option" data-value="15" onclick="CONFIG.setTarget(15)">15</div>
+          <div class="toggle-option" data-value="20" onclick="CONFIG.setTarget(20)">20</div>
+        </div>
+
+        <h3 style="margin-top: 30px;" data-i18n="label_question_mode">📝 Tipo de preguntas</h3>
+        <div class="toggle-group" id="mode-toggle">
+          <div class="toggle-option active" data-value="mixed" onclick="CONFIG.setQuestionMode('mixed')" data-i18n="mode_mixed">Mixto</div>
+          <div class="toggle-option" data-value="multiple" onclick="CONFIG.setQuestionMode('multiple')" data-i18n="mode_multiple">Solo opción múltiple</div>
+          <div class="toggle-option" data-value="vocab" onclick="CONFIG.setQuestionMode('vocab')" data-i18n="mode_vocab">Solo vocabulario</div>
+        </div>
+
+        <h3 style="margin-top: 30px;" data-i18n="label_powerups">⚡ Power-ups</h3>
+        <div class="switch active" id="powerup-switch" onclick="CONFIG.togglePowerUps()">
+          <div class="switch-slider"></div>
+          <span data-i18n="powerups_enabled">Activados</span>
+        </div>
+
+        <h3 style="margin-top: 30px;" data-i18n="label_speed">🎬 Velocidad de animación</h3>
+        <div class="toggle-group" id="speed-toggle">
+          <div class="toggle-option" data-value="slow" onclick="CONFIG.setSpeed('slow')" data-i18n="speed_slow">Lenta</div>
+          <div class="toggle-option active" data-value="normal" onclick="CONFIG.setSpeed('normal')" data-i18n="speed_normal">Normal</div>
+          <div class="toggle-option" data-value="fast" onclick="CONFIG.setSpeed('fast')" data-i18n="speed_fast">Rápida</div>
+        </div>
+
+        <div class="btn-group" style="margin-top: 40px;">
+          <button class="btn btn-secondary" onclick="UI.showScreen('import')" data-i18n="btn_back">← Atrás</button>
+          <button class="btn btn-primary" onclick="UI.showScreen('visual')" data-i18n="btn_continue">Continuar →</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="screen-visual" class="screen">
+      <div class="panel">
+        <h2 data-i18n="visual_title">🎨 Personalización visual</h2>
+        <h3 data-i18n="label_background">🖼️ Fondo del juego</h3>
+        <div class="toggle-group" style="margin-bottom: 20px;" id="bg-type-toggle">
+          <div class="toggle-option active" data-value="theme" onclick="BACKGROUNDS.setType('theme')" data-i18n="bg_themes">Temas</div>
+          <div class="toggle-option" data-value="solid" onclick="BACKGROUNDS.setType('solid')" data-i18n="bg_solid">Color</div>
+          <div class="toggle-option" data-value="gradient" onclick="BACKGROUNDS.setType('gradient')" data-i18n="bg_gradient">Gradiente</div>
+          <div class="toggle-option" data-value="emoji" onclick="BACKGROUNDS.setType('emoji')" data-i18n="bg_emoji">Emojis</div>
+          <div class="toggle-option" data-value="url" onclick="BACKGROUNDS.setType('url')" data-i18n="bg_url">URL</div>
+          <div class="toggle-option" data-value="file" onclick="BACKGROUNDS.setType('file')" data-i18n="bg_file">Archivo</div>
+        </div>
+        <div id="bg-options-container"></div>
+        <h3 style="margin-top: 30px;" data-i18n="label_team_colors">🎨 Colores de equipos</h3>
+        <div class="color-presets" id="color-presets"></div>
+        <div class="color-inputs">
+          <div class="color-input-group">
+            <label data-i18n="label_team1_color">Equipo 1:</label>
+            <input type="color" id="team1-color" value="#ef4444" onchange="COLORS.setTeam1(this.value)">
+          </div>
+          <div class="color-input-group">
+            <label data-i18n="label_team2_color">Equipo 2:</label>
+            <input type="color" id="team2-color" value="#3b82f6" onchange="COLORS.setTeam2(this.value)">
+          </div>
+        </div>
+        <h3 style="margin-top: 30px;" data-i18n="label_preview">👁️ Vista previa</h3>
+        <div class="preview-box" id="visual-preview">
+          <div class="preview-teams">
+            <div class="preview-team" id="preview-team1">Equipo 1</div>
+            <div class="preview-vs">VS</div>
+            <div class="preview-team" id="preview-team2">Equipo 2</div>
+          </div>
+        </div>
+        <div class="btn-group" style="margin-top: 40px;">
+          <button class="btn btn-secondary" onclick="UI.showScreen('config')" data-i18n="btn_back">← Atrás</button>
+          <button class="btn btn-primary" onclick="UI.showScreen('mode')" data-i18n="btn_continue">Continuar →</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="screen-mode" class="screen">
+      <div class="panel">
+        <h2 data-i18n="mode_title">🎮 Modo visual del juego</h2>
+        <p style="color: var(--text-muted); margin-bottom: 30px;" data-i18n="mode_subtitle">Elige cómo se verá el tira y afloja durante la partida</p>
+        <div class="mode-grid">
+          <div class="mode-card active" data-mode="A" onclick="MODE_SELECTOR.select('A')">
+            <div class="mode-preview"><div class="mini-rope"><div class="mini-flag"></div></div></div>
+            <h4 data-i18n="mode_a_title">A) Cuerda clásica</h4>
+            <p data-i18n="mode_a_desc">Cuerda con bandera que se mueve por nodos. Estilo tradicional.</p>
+          </div>
+          <div class="mode-card" data-mode="B" onclick="MODE_SELECTOR.select('B')">
+            <div class="mode-preview"><div class="mini-territory"><div class="mini-territory-fill"></div></div></div>
+            <h4 data-i18n="mode_b_title">B) Territorio</h4>
+            <p data-i18n="mode_b_desc">Barra de progreso que muestra el dominio de cada equipo.</p>
+          </div>
+          <div class="mode-card" data-mode="C" onclick="MODE_SELECTOR.select('C')">
+            <div class="mode-preview"><div class="mini-physics"><div class="mini-flag"></div></div></div>
+            <h4 data-i18n="mode_c_title">C) Física suave</h4>
+            <p data-i18n="mode_c_desc">Cuerda con animación fluida y efecto de tensión realista.</p>
+          </div>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-secondary" onclick="UI.showScreen('visual')" data-i18n="btn_back">← Atrás</button>
+          <button class="btn btn-primary" onclick="GAME.start()" data-i18n="btn_start_game">🎯 ¡Comenzar juego!</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ GAME SCREEN ═══════════════ -->
+    <div id="screen-game" class="screen">
+      <div class="game-header">
+        <div class="team-info">
+          <div class="team-name" id="game-team1-name">Equipo 1</div>
+          <div class="team-score" id="game-team1-score" style="color: #ef4444;">0</div>
+          <div class="powerup-indicator" id="team1-powerups"></div>
+          <div class="streak-badge" id="team1-streak" style="display:none;">🔥 0</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 1.5rem; font-weight: bold;">VS</div>
+          <div class="question-counter" id="question-counter">Pregunta 1 / 10</div>
+          <div class="pc-thinking" id="pc-thinking">🤖 PC pensando...</div>
+        </div>
+        <div class="team-info">
+          <div class="streak-badge" id="team2-streak" style="display:none;">🔥 0</div>
+          <div class="powerup-indicator" id="team2-powerups"></div>
+          <div class="team-score" id="game-team2-score" style="color: #3b82f6;">0</div>
+          <div class="team-name" id="game-team2-name">Equipo 2</div>
+        </div>
+      </div>
+
+      <div class="question-area">
+        <div class="question-text" id="question-text">¿Pregunta de ejemplo?</div>
+        <button class="tts-btn" onclick="GAME.speakQuestion()">🔊 <span data-i18n="btn_listen">Escuchar</span></button>
+        <div class="question-options" id="question-options"></div>
+        <div class="vocab-answer-area" id="vocab-answer-area">
+          <div style="color: var(--text-muted); margin-bottom: 10px;" data-i18n="vocab_answer_label">Respuesta correcta:</div>
+          <div class="vocab-answer-display" id="vocab-answer-display"></div>
+          <div style="color: var(--text-muted); font-size: 0.9rem;" data-i18n="vocab_instruction">Usa los botones de abajo para validar la respuesta oral del equipo</div>
+        </div>
+      </div>
+
+      <div class="canvas-container">
+        <canvas id="game-canvas"></canvas>
+      </div>
+
+      <div class="game-controls" id="game-controls">
+        <div class="team-controls">
+          <button class="score-btn" id="team1-correct-btn" style="background: #ef4444;" onclick="GAME.confirmAnswer(1, true)" disabled>
+            ✅ <span data-i18n="btn_correct">Correcto</span> <span id="team1-btn-name">Equipo 1</span>
+          </button>
+          <button class="score-btn" id="team1-wrong-btn" style="background: #991b1b;" onclick="GAME.confirmAnswer(1, false)" disabled>
+            ❌ <span data-i18n="btn_wrong">Falló</span> <span id="team1-btn-name2">Equipo 1</span>
+          </button>
+        </div>
+        <div class="team-controls" id="team2-controls">
+          <button class="score-btn" id="team2-correct-btn" style="background: #3b82f6;" onclick="GAME.confirmAnswer(2, true)" disabled>
+            ✅ <span data-i18n="btn_correct">Correcto</span> <span id="team2-btn-name">Equipo 2</span>
+          </button>
+          <button class="score-btn" id="team2-wrong-btn" style="background: #1e40af;" onclick="GAME.confirmAnswer(2, false)" disabled>
+            ❌ <span data-i18n="btn_wrong">Falló</span> <span id="team2-btn-name2">Equipo 2</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="game-footer">
+        <button class="btn btn-secondary" onclick="GAME.endGame()">🏠 <span data-i18n="btn_end_game">Terminar</span></button>
+        <button class="btn btn-primary" id="next-question-btn" onclick="GAME.nextQuestion()" style="display:none;">
+          <span data-i18n="btn_next_question">Siguiente pregunta →</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══════════════ FINAL SCREEN ═══════════════ -->
+    <div id="screen-final" class="screen">
+      <div class="final-screen">
+        <div class="final-trophy">🏆</div>
+        <div class="final-winner" id="final-winner-name">¡Equipo 1 gana!</div>
+        <div class="final-subtitle" id="final-subtitle">¡Felicidades al equipo ganador!</div>
+        <div class="stats-grid" id="final-stats"></div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="GAME.rematch()">🔄 <span data-i18n="btn_rematch">Revancha</span></button>
+          <button class="btn btn-secondary" onclick="GAME.changeSet()">📚 <span data-i18n="btn_change_set">Cambiar set</span></button>
+          <button class="btn btn-secondary" onclick="UI.showScreen('home')">🏠 <span data-i18n="btn_home">Inicio</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE POWER-UPS -->
+  <div class="modal-overlay" id="powerup-modal">
+    <div class="modal">
+      <h2 id="powerup-modal-title">⚡ ¡Power-up disponible!</h2>
+      <p id="powerup-modal-subtitle">Elige un poder especial</p>
+      <div class="powerup-options" id="powerup-options"></div>
+    </div>
+  </div>
+
+  <canvas id="confetti-canvas"></canvas>
+
+  <script>
+    const I18N = {
+      es: {
+        welcome_title: "¡Bienvenido a Lesson Feud!",
+        welcome_subtitle: "Juego de repaso tipo tira y afloja para el aula",
+        btn_new_game: "Nueva partida",
+        btn_load_saved: "Cargar set guardado",
+        import_title: "Importar contenido",
+        tab_text: "Texto simple", tab_csv: "CSV", tab_json: "JSON", tab_quizlet: "Quizlet/Anki",
+        format_text_title: "Formato:", format_text_example: "Ejemplo:",
+        format_csv_title: "Formato CSV:", format_json_title: "Formato JSON:", format_quizlet_title: "Formato vocabulario:",
+        label_paste: "Pegar contenido:",
+        btn_upload_file: "Subir archivo",
+        upload_hint_text: "o sube un archivo .txt", upload_hint_csv: "o sube un archivo .csv",
+        upload_hint_json: "o sube un archivo .json", upload_hint_quizlet: "o sube un archivo .txt",
+        btn_process: "Procesar y validar", btn_cancel: "Cancelar", btn_continue: "Continuar →", btn_back: "← Atrás",
+        preview_title: "✅ Preguntas detectadas:",
+        btn_save_set: "Guardar set", btn_start_game: "🎯 ¡Comenzar juego!",
+        saved_sets_title: "Sets guardados:", no_saved_sets: "No hay sets guardados",
+        load_btn: "Cargar", delete_btn: "Eliminar", set_name_prompt: "Nombre del set:",
+        alert_no_content: "Por favor ingresa contenido primero",
+        alert_parse_error: "Error al procesar el contenido. Verifica el formato.",
+        alert_set_saved: "Set guardado exitosamente",
+        alert_enter_name: "Ingresa un nombre para el set",
+        alert_file_error: "Error al leer el archivo",
+        confirm_delete: "¿Eliminar este set?",
+        and_more: "... y {n} más",
+        config_title: "⚙️ Configuración de la partida",
+        label_game_mode: "🎮 Modo de juego",
+        mode_teams: "2 Equipos", mode_single: "1 Jugador vs PC",
+        label_team1_name: "Nombre Equipo 1:", label_team2_name: "Nombre Equipo 2:",
+        label_player_name: "Nombre del jugador:",
+        label_pc_difficulty: "Dificultad del PC:",
+        difficulty_easy: "Fácil (30% precisión)",
+        difficulty_medium: "Medio (60% precisión)",
+        difficulty_hard: "Difícil (90% precisión)",
+        label_target_score: "🎯 Meta de la partida (nodos para ganar)",
+        label_question_mode: "📝 Tipo de preguntas",
+        mode_mixed: "Mixto", mode_multiple: "Solo opción múltiple", mode_vocab: "Solo vocabulario",
+        label_powerups: "⚡ Power-ups", powerups_enabled: "Activados", powerups_disabled: "Desactivados",
+        label_speed: "🎬 Velocidad de animación",
+        speed_slow: "Lenta", speed_normal: "Normal", speed_fast: "Rápida",
+        visual_title: "🎨 Personalización visual",
+        label_background: "🖼️ Fondo del juego",
+        bg_themes: "Temas", bg_solid: "Color", bg_gradient: "Gradiente",
+        bg_emoji: "Emojis", bg_url: "URL", bg_file: "Archivo",
+        label_team_colors: "🎨 Colores de equipos",
+        label_team1_color: "Equipo 1:", label_team2_color: "Equipo 2:",
+        label_preview: "👁️ Vista previa",
+        mode_title: "🎮 Modo visual del juego",
+        mode_subtitle: "Elige cómo se verá el tira y afloja durante la partida",
+        mode_a_title: "A) Cuerda clásica", mode_a_desc: "Cuerda con bandera que se mueve por nodos. Estilo tradicional.",
+        mode_b_title: "B) Territorio", mode_b_desc: "Barra de progreso que muestra el dominio de cada equipo.",
+        mode_c_title: "C) Física suave", mode_c_desc: "Cuerda con animación fluida y efecto de tensión realista.",
+        theme_jungle: "Selva", theme_space: "Espacio", theme_ocean: "Océano", theme_desert: "Desierto",
+        theme_city: "Ciudad", theme_classroom: "Aula", theme_magic: "Magia", theme_retro: "Retro",
+        color_classic: "Clásico", color_forest: "Bosque", color_sunset: "Atardecer",
+        color_candy: "Dulce", color_fire: "Fuego", color_gold: "Oro y Plata",
+        bg_url_placeholder: "Pega la URL de una imagen...", bg_apply_url: "Aplicar URL",
+        bg_upload_file: "Subir imagen", bg_emoji_hint: "Ejemplo: 🌴🌊🐠 (3-5 emojis)",
+        question_counter: "Pregunta {current} / {total}",
+        btn_listen: "Escuchar", btn_correct: "Correcto", btn_wrong: "Falló",
+        btn_end_game: "Terminar", btn_next_question: "Siguiente pregunta →",
+        vocab_answer_label: "Respuesta correcta:",
+        vocab_instruction: "Usa los botones de abajo para validar la respuesta oral del equipo",
+        powerup_available: "⚡ ¡Power-up disponible!",
+        powerup_choose: "Elige un poder especial para tu equipo",
+        pu_shield_name: "Escudo", pu_shield_desc: "El próximo error no te hace retroceder",
+        pu_double_name: "Doble fuerza", pu_double_desc: "Tu próximo acierto vale x2",
+        pu_freeze_name: "Freno", pu_freeze_desc: "El rival no avanza en su próximo acierto",
+        pu_steal_name: "Robo", pu_steal_desc: "Tu próximo acierto mueve 2 nodos",
+        pu_wildcard_name: "Comodín", pu_wildcard_desc: "Descarta esta pregunta por otra",
+        final_winner: "¡{team} gana!",
+        final_subtitle: "¡Felicidades al equipo ganador!",
+        stat_correct: "Aciertos", stat_wrong: "Errores", stat_accuracy: "Precisión",
+        stat_questions: "Preguntas", stat_time: "Tiempo", stat_streak: "Mejor racha",
+        btn_rematch: "Revancha", btn_change_set: "Cambiar set", btn_home: "Inicio",
+        confirm_end_game: "¿Seguro que quieres terminar la partida?",
+        pc_thinking: "🤖 PC pensando..."
+      },
+      en: {
+        welcome_title: "Welcome to Lesson Feud!",
+        welcome_subtitle: "Tug of war review game for the classroom",
+        btn_new_game: "New game", btn_load_saved: "Load saved set",
+        import_title: "Import content",
+        tab_text: "Simple text", tab_csv: "CSV", tab_json: "JSON", tab_quizlet: "Quizlet/Anki",
+        format_text_title: "Format:", format_text_example: "Example:",
+        format_csv_title: "CSV Format:", format_json_title: "JSON Format:", format_quizlet_title: "Vocabulary format:",
+        label_paste: "Paste content:",
+        btn_upload_file: "Upload file",
+        upload_hint_text: "or upload a .txt file", upload_hint_csv: "or upload a .csv file",
+        upload_hint_json: "or upload a .json file", upload_hint_quizlet: "or upload a .txt file",
+        btn_process: "Process and validate", btn_cancel: "Cancel", btn_continue: "Continue →", btn_back: "← Back",
+        preview_title: "✅ Questions detected:",
+        btn_save_set: "Save set", btn_start_game: "🎯 Start game!",
+        saved_sets_title: "Saved sets:", no_saved_sets: "No saved sets",
+        load_btn: "Load", delete_btn: "Delete", set_name_prompt: "Set name:",
+        alert_no_content: "Please enter content first",
+        alert_parse_error: "Error processing content. Check the format.",
+        alert_set_saved: "Set saved successfully",
+        alert_enter_name: "Enter a name for the set",
+        alert_file_error: "Error reading file",
+        confirm_delete: "Delete this set?",
+        and_more: "... and {n} more",
+        config_title: "⚙️ Match configuration",
+        label_game_mode: "🎮 Game mode",
+        mode_teams: "2 Teams", mode_single: "1 Player vs PC",
+        label_team1_name: "Team 1 name:", label_team2_name: "Team 2 name:",
+        label_player_name: "Player name:",
+        label_pc_difficulty: "PC difficulty:",
+        difficulty_easy: "Easy (30% accuracy)",
+        difficulty_medium: "Medium (60% accuracy)",
+        difficulty_hard: "Hard (90% accuracy)",
+        label_target_score: "🎯 Match target (nodes to win)",
+        label_question_mode: "📝 Question type",
+        mode_mixed: "Mixed", mode_multiple: "Multiple choice only", mode_vocab: "Vocabulary only",
+        label_powerups: "⚡ Power-ups", powerups_enabled: "Enabled", powerups_disabled: "Disabled",
+        label_speed: "🎬 Animation speed",
+        speed_slow: "Slow", speed_normal: "Normal", speed_fast: "Fast",
+        visual_title: "🎨 Visual customization",
+        label_background: "🖼️ Game background",
+        bg_themes: "Themes", bg_solid: "Color", bg_gradient: "Gradient",
+        bg_emoji: "Emojis", bg_url: "URL", bg_file: "File",
+        label_team_colors: "🎨 Team colors",
+        label_team1_color: "Team 1:", label_team2_color: "Team 2:",
+        label_preview: "👁️ Preview",
+        mode_title: "🎮 Visual game mode",
+        mode_subtitle: "Choose how the tug of war will look during the match",
+        mode_a_title: "A) Classic rope", mode_a_desc: "Rope with flag that moves by nodes. Traditional style.",
+        mode_b_title: "B) Territory", mode_b_desc: "Progress bar showing each team's dominance.",
+        mode_c_title: "C) Smooth physics", mode_c_desc: "Rope with fluid animation and realistic tension effect.",
+        theme_jungle: "Jungle", theme_space: "Space", theme_ocean: "Ocean", theme_desert: "Desert",
+        theme_city: "City", theme_classroom: "Classroom", theme_magic: "Magic", theme_retro: "Retro",
+        color_classic: "Classic", color_forest: "Forest", color_sunset: "Sunset",
+        color_candy: "Candy", color_fire: "Fire", color_gold: "Gold & Silver",
+        bg_url_placeholder: "Paste an image URL...", bg_apply_url: "Apply URL",
+        bg_upload_file: "Upload image", bg_emoji_hint: "Example: 🌴🌊🐠 (3-5 emojis)",
+        question_counter: "Question {current} / {total}",
+        btn_listen: "Listen", btn_correct: "Correct", btn_wrong: "Wrong",
+        btn_end_game: "End game", btn_next_question: "Next question →",
+        vocab_answer_label: "Correct answer:",
+        vocab_instruction: "Use the buttons below to validate the team's oral answer",
+        powerup_available: "⚡ Power-up available!",
+        powerup_choose: "Choose a special power for your team",
+        pu_shield_name: "Shield", pu_shield_desc: "Next wrong answer won't push you back",
+        pu_double_name: "Double power", pu_double_desc: "Your next correct answer counts x2",
+        pu_freeze_name: "Freeze", pu_freeze_desc: "Opponent won't advance on next correct",
+        pu_steal_name: "Steal", pu_steal_desc: "Your next correct answer moves 2 nodes",
+        pu_wildcard_name: "Wildcard", pu_wildcard_desc: "Skip this question for another",
+        final_winner: "{team} wins!",
+        final_subtitle: "Congratulations to the winning team!",
+        stat_correct: "Correct", stat_wrong: "Wrong", stat_accuracy: "Accuracy",
+        stat_questions: "Questions", stat_time: "Time", stat_streak: "Best streak",
+        btn_rematch: "Rematch", btn_change_set: "Change set", btn_home: "Home",
+        confirm_end_game: "Are you sure you want to end the match?",
+        pc_thinking: "🤖 PC thinking..."
+      }
+    };
+    function t(key) { return (I18N[STATE.lang] && I18N[STATE.lang][key]) || key; }
+
+    const STATE = {
+      lang: 'es',
+      currentQuestions: [],
+      currentSet: null,
+      config: {
+        gameMode: 'teams',
+        team1Name: 'Equipo 1', team2Name: 'Equipo 2',
+        playerName: 'Jugador',
+        pcDifficulty: 'medium',
+        targetScore: 10, questionMode: 'mixed',
+        powerUpsEnabled: true, animationSpeed: 'normal'
+      },
+      visual: {
+        backgroundType: 'theme', backgroundValue: 'jungle',
+        team1Color: '#ef4444', team2Color: '#3b82f6', visualMode: 'A'
+      },
+      game: {
+        team1Score: 0, team2Score: 0,
+        currentQuestionIndex: 0, questionsAsked: 0,
+        team1Correct: 0, team2Correct: 0,
+        team1Wrong: 0, team2Wrong: 0,
+        team1Streak: 0, team2Streak: 0,
+        team1BestStreak: 0, team2BestStreak: 0,
+        team1PowerUps: [], team2PowerUps: [],
+        team1Freeze: false, team2Freeze: false,
+        startTime: null,
+        answerPending: false,
+        currentAnswerCorrect: false,
+        usedQuestions: [],
+        pcAnswerTimeout: null
+      }
+    };
+
+    const PARSERS = {
+      currentTab: 'text',
+      parseText: function(text) {
+        const lines = text.trim().split('\n').filter(l => l.trim());
+        return lines.map(line => {
+          const parts = line.split('|').map(p => p.trim());
+          if (parts.length < 6) return null;
+          const [prompt, optA, optB, optC, optD, correct] = parts;
+          const options = [optA, optB, optC, optD];
+          const letter = correct.trim().toUpperCase();
+          const answerIndex = letter.charCodeAt(0) - 65;
+          return {
+            type: 'multiple', prompt, options,
+            answer: (answerIndex >= 0 && answerIndex < 4) ? options[answerIndex] : correct
+          };
+        }).filter(q => q !== null);
+      },
+      parseCSV: function(text) {
+        const lines = text.trim().split('\n').filter(l => l.trim());
+        if (lines.length === 0) return [];
+        const firstLine = lines[0];
+        const delimiter = firstLine.includes(';') ? ';' : (firstLine.includes('\t') ? '\t' : ',');
+        const firstParts = firstLine.split(delimiter);
+        const hasHeader = firstParts.some(p => /pregunta|question|prompt|term/i.test(p));
+        const dataLines = hasHeader ? lines.slice(1) : lines;
+        return dataLines.map(line => {
+          const parts = []; let current = ''; let inQuotes = false;
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') inQuotes = !inQuotes;
+            else if (char === delimiter && !inQuotes) { parts.push(current.trim()); current = ''; }
+            else current += char;
+          }
+          parts.push(current.trim());
+          if (parts.length < 6) return null;
+          const [prompt, optA, optB, optC, optD, correct] = parts;
+          const options = [optA, optB, optC, optD];
+          const letter = correct.trim().toUpperCase();
+          const answerIndex = letter.charCodeAt(0) - 65;
+          return {
+            type: 'multiple', prompt, options,
+            answer: (answerIndex >= 0 && answerIndex < 4) ? options[answerIndex] : correct
+          };
+        }).filter(q => q !== null);
+      },
+      parseJSON: function(text) {
+        try {
+          const data = JSON.parse(text);
+          if (!Array.isArray(data)) return [];
+          return data.map(item => ({
+            type: item.options && item.options.length > 0 ? 'multiple' : 'vocab',
+            prompt: item.prompt || item.q || item.term || '',
+            options: item.options || [],
+            answer: item.answer || item.a || item.definition || ''
+          })).filter(q => q.prompt && q.answer);
+        } catch (e) { return []; }
+      },
+      parseQuizlet: function(text) {
+        const lines = text.trim().split('\n').filter(l => l.trim());
+        return lines.map(line => {
+          let parts;
+          if (line.includes('\t')) parts = line.split('\t');
+          else if (line.includes(' - ')) parts = line.split(' - ');
+          else if (line.includes(' : ')) parts = line.split(' : ');
+          else return null;
+          if (parts.length < 2) return null;
+          return {
+            type: 'vocab', prompt: parts[0].trim(), options: [],
+            answer: parts.slice(1).join(' - ').trim()
+          };
+        }).filter(q => q !== null);
+      },
+      processCurrentTab: function() {
+        const input = document.getElementById(`input-${this.currentTab}`);
+        if (!input) return;
+        const text = input.value.trim();
+        if (!text) { alert(t('alert_no_content')); return; }
+        let questions = [];
+        try {
+          switch (this.currentTab) {
+            case 'text': questions = this.parseText(text); break;
+            case 'csv': questions = this.parseCSV(text); break;
+            case 'json': questions = this.parseJSON(text); break;
+            case 'quizlet': questions = this.parseQuizlet(text); break;
+          }
+        } catch (e) { alert(t('alert_parse_error')); return; }
+        if (!questions || questions.length === 0) { alert(t('alert_parse_error')); return; }
+        STATE.currentQuestions = questions;
+        UI.showPreview(questions);
+      }
+    };
+
+    const STORAGE = {
+      saveSet: function(name, questions) {
+        const sets = JSON.parse(localStorage.getItem('lessonFeudSets') || '{}');
+        sets[name] = { questions: questions, date: new Date().toISOString() };
+        localStorage.setItem('lessonFeudSets', JSON.stringify(sets));
+      },
+      loadSet: function(name) {
+        const sets = JSON.parse(localStorage.getItem('lessonFeudSets') || '{}');
+        return sets[name] ? sets[name].questions : null;
+      },
+      getAllSets: function() { return JSON.parse(localStorage.getItem('lessonFeudSets') || '{}'); },
+      deleteSet: function(name) {
+        const sets = JSON.parse(localStorage.getItem('lessonFeudSets') || '{}');
+        delete sets[name];
+        localStorage.setItem('lessonFeudSets', JSON.stringify(sets));
+      },
+      saveCurrentSet: function() {
+        const name = prompt(t('set_name_prompt'));
+        if (!name || !name.trim()) { alert(t('alert_enter_name')); return; }
+        this.saveSet(name.trim(), STATE.currentQuestions);
+        alert(t('alert_set_saved'));
+      },
+      loadExampleSet: function() {
+        const exampleQuestions = [
+          { type: 'vocab', prompt: 'apple', options: [], answer: 'manzana' },
+          { type: 'vocab', prompt: 'book', options: [], answer: 'libro' },
+          { type: 'vocab', prompt: 'house', options: [], answer: 'casa' },
+          { type: 'vocab', prompt: 'dog', options: [], answer: 'perro' },
+          { type: 'vocab', prompt: 'cat', options: [], answer: 'gato' }
+        ];
+        this.saveSet('Vocabulario inglés básico (ejemplo)', exampleQuestions);
+      }
+    };
+
+    const FILE_UPLOAD = {
+      handleFile: function(input, tabId) {
+        const file = input.files[0];
+        if (!file) return;
+        const fileNameSpan = document.getElementById(`file-name-${tabId}`);
+        const textarea = document.getElementById(`input-${tabId}`);
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          textarea.value = e.target.result;
+          fileNameSpan.textContent = `✓ ${file.name}`;
+        };
+        reader.onerror = function() {
+          alert(t('alert_file_error'));
+          fileNameSpan.textContent = '';
+        };
+        reader.readAsText(file);
+      }
+    };
+
+    const CONFIG = {
+      setGameMode: function(mode) {
+        STATE.config.gameMode = mode;
+        document.querySelectorAll('#game-mode-toggle .toggle-option').forEach(el => {
+          el.classList.toggle('active', el.dataset.value === mode);
+        });
+        document.getElementById('teams-config').style.display = mode === 'teams' ? 'block' : 'none';
+        document.getElementById('single-config').style.display = mode === 'single' ? 'block' : 'none';
+      },
+      setTarget: function(value) {
+        STATE.config.targetScore = value;
+        document.querySelectorAll('#target-toggle .toggle-option').forEach(el => {
+          el.classList.toggle('active', parseInt(el.dataset.value) === value);
+        });
+      },
+      setQuestionMode: function(mode) {
+        STATE.config.questionMode = mode;
+        document.querySelectorAll('#mode-toggle .toggle-option').forEach(el => {
+          el.classList.toggle('active', el.dataset.value === mode);
+        });
+      },
+      togglePowerUps: function() {
+        STATE.config.powerUpsEnabled = !STATE.config.powerUpsEnabled;
+        const sw = document.getElementById('powerup-switch');
+        sw.classList.toggle('active', STATE.config.powerUpsEnabled);
+        sw.querySelector('span').textContent = STATE.config.powerUpsEnabled ? t('powerups_enabled') : t('powerups_disabled');
+      },
+      setSpeed: function(speed) {
+        STATE.config.animationSpeed = speed;
+        document.querySelectorAll('#speed-toggle .toggle-option').forEach(el => {
+          el.classList.toggle('active', el.dataset.value === speed);
+        });
+      },
+      syncFromInputs: function() {
+        if (STATE.config.gameMode === 'teams') {
+          STATE.config.team1Name = document.getElementById('team1-name').value.trim() || 'Equipo 1';
+          STATE.config.team2Name = document.getElementById('team2-name').value.trim() || 'Equipo 2';
+        } else {
+          STATE.config.playerName = document.getElementById('player-name').value.trim() || 'Jugador';
+          STATE.config.team2Name = '🤖 PC';
+          STATE.config.pcDifficulty = document.getElementById('pc-difficulty').value;
+        }
+      }
+    };
+
+    const BACKGROUNDS = {
+      themes: {
+        jungle:    { gradient: 'linear-gradient(135deg, #064e3b, #10b981, #84cc16)', emojis: '🌴🌿🦜🐒🌺' },
+        space:     { gradient: 'linear-gradient(135deg, #0f172a, #1e1b4b, #581c87)', emojis: '🌟🚀🌙✨🪐' },
+        ocean:     { gradient: 'linear-gradient(135deg, #0c4a6e, #0284c7, #06b6d4)', emojis: '🌊🐠🐚🐬🦀' },
+        desert:    { gradient: 'linear-gradient(135deg, #78350f, #d97706, #fbbf24)', emojis: '🏜️🌵☀️🐫🦂' },
+        city:      { gradient: 'linear-gradient(135deg, #1e293b, #475569, #64748b)', emojis: '🏙️🚗🏢🌃🚦' },
+        classroom: { gradient: 'linear-gradient(135deg, #fef3c7, #fde68a, #fcd34d)', emojis: '📚✏️🎓📖🍎' },
+        magic:     { gradient: 'linear-gradient(135deg, #581c87, #a855f7, #ec4899)', emojis: '✨🔮🪄🌙⭐' },
+        retro:     { gradient: 'linear-gradient(135deg, #be185d, #7c3aed, #06b6d4)', emojis: '👾🕹️🎮🎯🎲' }
+      },
+      solids: ['#0f172a', '#1e293b', '#7c2d12', '#14532d', '#1e3a8a', '#581c87', '#831843', '#713f12'],
+      gradients: [
+        'linear-gradient(135deg, #667eea, #764ba2)',
+        'linear-gradient(135deg, #f093fb, #f5576c)',
+        'linear-gradient(135deg, #4facfe, #00f2fe)',
+        'linear-gradient(135deg, #43e97b, #38f9d7)',
+        'linear-gradient(135deg, #fa709a, #fee140)',
+        'linear-gradient(135deg, #30cfd0, #330867)',
+        'linear-gradient(135deg, #a8edea, #fed6e3)',
+        'linear-gradient(135deg, #ff9a9e, #fecfef)'
+      ],
+      setType: function(type) {
+        STATE.visual.backgroundType = type;
+        document.querySelectorAll('#bg-type-toggle .toggle-option').forEach(el => {
+          el.classList.toggle('active', el.dataset.value === type);
+        });
+        this.renderOptions();
+        UI.updatePreview();
+      },
+      renderOptions: function() {
+        const container = document.getElementById('bg-options-container');
+        const type = STATE.visual.backgroundType;
+        let html = '';
+        if (type === 'theme') {
+          html = '<div class="bg-grid">';
+          for (const [key, theme] of Object.entries(this.themes)) {
+            const active = STATE.visual.backgroundValue === key ? 'active' : '';
+            html += `<div class="bg-card ${active}" style="background: ${theme.gradient};" onclick="BACKGROUNDS.selectTheme('${key}')">
+              <span style="font-size: 2rem;">${theme.emojis}</span>
+              <div class="bg-card-label">${t('theme_' + key)}</div>
+            </div>`;
+          }
+          html += '</div>';
+        } else if (type === 'solid') {
+          html = '<div class="bg-grid">';
+          this.solids.forEach(color => {
+            const active = STATE.visual.backgroundValue === color ? 'active' : '';
+            html += `<div class="bg-card ${active}" style="background: ${color};" onclick="BACKGROUNDS.selectSolid('${color}')"></div>`;
+          });
+          html += '</div>';
+        } else if (type === 'gradient') {
+          html = '<div class="bg-grid">';
+          this.gradients.forEach((grad, i) => {
+            const active = STATE.visual.backgroundValue === grad ? 'active' : '';
+            html += `<div class="bg-card ${active}" style="background: ${grad};" onclick="BACKGROUNDS.selectGradient(${i})"></div>`;
+          });
+          html += '</div>';
+        } else if (type === 'emoji') {
+          html = `<div class="form-group">
+            <label>${t('bg_emoji_hint')}</label>
+            <input type="text" id="emoji-input" value="${STATE.visual.backgroundValue || '🌴🌊🐠'}" 
+                   style="width: 100%; padding: 10px; font-size: 1.5rem; text-align: center; background: var(--bg); border: 2px solid var(--border); border-radius: 6px; color: var(--text);"
+                   oninput="BACKGROUNDS.setEmoji(this.value)">
+          </div>`;
+        } else if (type === 'url') {
+          html = `<div class="form-group">
+            <label>${t('bg_url_placeholder')}</label>
+            <div style="display: flex; gap: 10px;">
+              <input type="text" id="url-input" placeholder="https://..." 
+                     style="flex: 1; padding: 10px; background: var(--bg); border: 2px solid var(--border); border-radius: 6px; color: var(--text);">
+              <button class="btn btn-primary" onclick="BACKGROUNDS.applyUrl()" style="padding: 10px 20px;">${t('bg_apply_url')}</button>
+            </div>
+          </div>`;
+        } else if (type === 'file') {
+          html = `<div class="file-upload" style="margin-top: 0;">
+            <label class="file-upload-label" for="bg-file-input">📁 ${t('bg_upload_file')}</label>
+            <input type="file" id="bg-file-input" accept="image/*" onchange="BACKGROUNDS.handleBgFile(this)">
+            <span class="file-name" id="bg-file-name"></span>
+          </div>`;
+        }
+        container.innerHTML = html;
+      },
+      selectTheme: function(key) { STATE.visual.backgroundValue = key; this.renderOptions(); UI.updatePreview(); },
+      selectSolid: function(color) { STATE.visual.backgroundValue = color; this.renderOptions(); UI.updatePreview(); },
+      selectGradient: function(index) { STATE.visual.backgroundValue = this.gradients[index]; this.renderOptions(); UI.updatePreview(); },
+      setEmoji: function(value) { STATE.visual.backgroundValue = value; UI.updatePreview(); },
+      applyUrl: function() {
+        const url = document.getElementById('url-input').value.trim();
+        if (url) { STATE.visual.backgroundValue = url; UI.updatePreview(); }
+      },
+      handleBgFile: function(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          STATE.visual.backgroundValue = e.target.result;
+          document.getElementById('bg-file-name').textContent = `✓ ${file.name}`;
+          UI.updatePreview();
+        };
+        reader.readAsDataURL(file);
+      },
+      getBackgroundStyle: function() {
+        const type = STATE.visual.backgroundType;
+        const value = STATE.visual.backgroundValue;
+        if (type === 'theme') return this.themes[value].gradient;
+        if (type === 'solid' || type === 'gradient') return value;
+        return '#0f172a';
+      }
+    };
+
+    const COLORS = {
+      presets: [
+        { name: 'classic', t1: '#ef4444', t2: '#3b82f6' },
+        { name: 'forest', t1: '#10b981', t2: '#8b5cf6' },
+        { name: 'sunset', t1: '#f97316', t2: '#06b6d4' },
+        { name: 'candy', t1: '#ec4899', t2: '#eab308' },
+        { name: 'fire', t1: '#dc2626', t2: '#16a34a' },
+        { name: 'gold', t1: '#fbbf24', t2: '#94a3b8' }
+      ],
+      renderPresets: function() {
+        const container = document.getElementById('color-presets');
+        container.innerHTML = this.presets.map((preset, i) => {
+          const isActive = STATE.visual.team1Color === preset.t1 && STATE.visual.team2Color === preset.t2;
+          return `<div class="color-preset ${isActive ? 'active' : ''}" onclick="COLORS.applyPreset(${i})">
+            <div class="color-dot" style="background: ${preset.t1};"></div>
+            <div class="color-dot" style="background: ${preset.t2};"></div>
+            <span>${t('color_' + preset.name)}</span>
+          </div>`;
+        }).join('');
+      },
+      applyPreset: function(index) {
+        const preset = this.presets[index];
+        STATE.visual.team1Color = preset.t1;
+        STATE.visual.team2Color = preset.t2;
+        document.getElementById('team1-color').value = preset.t1;
+        document.getElementById('team2-color').value = preset.t2;
+        this.renderPresets();
+        UI.updatePreview();
+      },
+      setTeam1: function(color) { STATE.visual.team1Color = color; this.renderPresets(); UI.updatePreview(); },
+      setTeam2: function(color) { STATE.visual.team2Color = color; this.renderPresets(); UI.updatePreview(); }
+    };
+
+    const MODE_SELECTOR = {
+      select: function(mode) {
+        STATE.visual.visualMode = mode;
+        document.querySelectorAll('.mode-card').forEach(card => {
+          card.classList.toggle('active', card.dataset.mode === mode);
+        });
+      }
+    };
+
+    const POWERUPS = {
+      types: [
+        { id: 'shield',   emoji: '🛡️', nameKey: 'pu_shield_name',   descKey: 'pu_shield_desc' },
+        { id: 'double',   emoji: '💪', nameKey: 'pu_double_name',   descKey: 'pu_double_desc' },
+        { id: 'freeze',   emoji: '🧊', nameKey: 'pu_freeze_name',   descKey: 'pu_freeze_desc' },
+        { id: 'steal',    emoji: '⚡', nameKey: 'pu_steal_name',    descKey: 'pu_steal_desc' },
+        { id: 'wildcard', emoji: '🎲', nameKey: 'pu_wildcard_name', descKey: 'pu_wildcard_desc' }
+      ],
+      pendingTeam: null,
+
+      showSelector: function(team) {
+        this.pendingTeam = team;
+        const modal = document.getElementById('powerup-modal');
+        const optionsContainer = document.getElementById('powerup-options');
+        const teamName = team === 1 ? (STATE.config.gameMode === 'single' ? STATE.config.playerName : STATE.config.team1Name) : STATE.config.team2Name;
+        
+        document.getElementById('powerup-modal-title').textContent = `⚡ ${teamName} - ${t('powerup_available')}`;
+        document.getElementById('powerup-modal-subtitle').textContent = t('powerup_choose');
+
+        const available = [...this.types].sort(() => Math.random() - 0.5).slice(0, 3);
+        
+        optionsContainer.innerHTML = available.map(pu => `
+          <div class="powerup-option" onclick="POWERUPS.select('${pu.id}')">
+            <span class="emoji">${pu.emoji}</span>
+            <div class="name">${t(pu.nameKey)}</div>
+            <div class="desc">${t(pu.descKey)}</div>
+          </div>
+        `).join('');
+
+        modal.classList.add('active');
+      },
+
+      select: function(puId) {
+        const team = this.pendingTeam;
+        if (team === 1) {
+          STATE.game.team1PowerUps.push(puId);
+        } else {
+          STATE.game.team2PowerUps.push(puId);
+        }
+        document.getElementById('powerup-modal').classList.remove('active');
+        this.pendingTeam = null;
+        this.renderIndicators();
+        AUDIO.play('powerup');
+      },
+
+      consume: function(team, puId) {
+        const arr = team === 1 ? STATE.game.team1PowerUps : STATE.game.team2PowerUps;
+        const idx = arr.indexOf(puId);
+        if (idx !== -1) arr.splice(idx, 1);
+        this.renderIndicators();
+      },
+
+      has: function(team, puId) {
+        const arr = team === 1 ? STATE.game.team1PowerUps : STATE.game.team2PowerUps;
+        return arr.includes(puId);
+      },
+
+      renderIndicators: function() {
+        ['team1', 'team2'].forEach((teamKey, idx) => {
+          const teamNum = idx + 1;
+          const container = document.getElementById(`${teamKey}-powerups`);
+          const powerUps = teamNum === 1 ? STATE.game.team1PowerUps : STATE.game.team2PowerUps;
+          
+          container.innerHTML = powerUps.map(puId => {
+            const pu = this.types.find(p => p.id === puId);
+            return pu ? `<span class="powerup-icon" title="${t(pu.nameKey)}: ${t(pu.descKey)}">${pu.emoji}</span>` : '';
+          }).join('');
+        });
+      },
+
+      checkActivation: function() {
+        if (!STATE.config.powerUpsEnabled) return;
+        
+        if (STATE.game.questionsAsked > 0 && STATE.game.questionsAsked % 5 === 0 && STATE.game.answerPending === false) {
+          if (STATE.game.team1Score < STATE.game.team2Score) {
+            this.showSelector(1);
+          } else if (STATE.game.team2Score < STATE.game.team1Score) {
+            this.showSelector(2);
+          } else {
+            this.showSelector(1);
+            setTimeout(() => this.showSelector(2), 500);
+          }
+        }
+      },
+
+      checkStreak: function(team) {
+        if (!STATE.config.powerUpsEnabled) return;
+        const streak = team === 1 ? STATE.game.team1Streak : STATE.game.team2Streak;
+        if (streak > 0 && streak % 3 === 0) {
+          setTimeout(() => this.showSelector(team), 800);
+        }
+      }
+    };
+
+    const AUDIO = {
+      ctx: null,
+      init: function() {
+        if (!this.ctx) {
+          try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+          catch (e) { console.warn('Audio not supported'); }
+        }
+      },
+      play: function(type) {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        
+        if (type === 'correct') {
+          [261.63, 329.63, 392.00].forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.frequency.value = freq;
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0, now + i * 0.1);
+            gain.gain.linearRampToValueAtTime(0.2, now + i * 0.1 + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.3);
+            osc.connect(gain); gain.connect(this.ctx.destination);
+            osc.start(now + i * 0.1);
+            osc.stop(now + i * 0.1 + 0.3);
+          });
+        } else if (type === 'wrong') {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.frequency.value = 100;
+          osc.type = 'sawtooth';
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(now); osc.stop(now + 0.4);
+        } else if (type === 'powerup') {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.frequency.setValueAtTime(200, now);
+          osc.frequency.exponentialRampToValueAtTime(800, now + 0.3);
+          osc.type = 'sine';
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(now); osc.stop(now + 0.3);
+        } else if (type === 'victory') {
+          const notes = [523.25, 659.25, 783.99, 1046.50];
+          notes.forEach((freq, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.frequency.value = freq;
+            osc.type = 'triangle';
+            gain.gain.setValueAtTime(0, now + i * 0.15);
+            gain.gain.linearRampToValueAtTime(0.25, now + i * 0.15 + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.4);
+            osc.connect(gain); gain.connect(this.ctx.destination);
+            osc.start(now + i * 0.15);
+            osc.stop(now + i * 0.15 + 0.4);
+          });
+        }
+      }
+    };
+
+    const CONFETTI = {
+      canvas: null, ctx: null, particles: [], animationId: null,
+      init: function() {
+        this.canvas = document.getElementById('confetti-canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+      },
+      resize: function() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+      },
+      start: function(colors) {
+        this.particles = [];
+        for (let i = 0; i < 150; i++) {
+          this.particles.push({
+            x: Math.random() * this.canvas.width,
+            y: -20 - Math.random() * 200,
+            vx: (Math.random() - 0.5) * 4,
+            vy: 2 + Math.random() * 4,
+            size: 6 + Math.random() * 8,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            rotation: Math.random() * 360,
+            rotationSpeed: (Math.random() - 0.5) * 10,
+            shape: Math.random() > 0.5 ? 'rect' : 'circle'
+          });
+        }
+        this.animate();
+        setTimeout(() => this.stop(), 6000);
+      },
+      animate: function() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        let active = false;
+        this.particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.1;
+          p.rotation += p.rotationSpeed;
+          if (p.y < this.canvas.height + 50) {
+            active = true;
+            this.ctx.save();
+            this.ctx.translate(p.x, p.y);
+            this.ctx.rotate(p.rotation * Math.PI / 180);
+            this.ctx.fillStyle = p.color;
+            if (p.shape === 'rect') {
+              this.ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size * 0.6);
+            } else {
+              this.ctx.beginPath();
+              this.ctx.arc(0, 0, p.size/2, 0, Math.PI * 2);
+              this.ctx.fill();
+            }
+            this.ctx.restore();
+          }
+        });
+        if (active) {
+          this.animationId = requestAnimationFrame(() => this.animate());
+        } else {
+          this.stop();
+        }
+      },
+      stop: function() {
+        if (this.animationId) cancelAnimationFrame(this.animationId);
+        if (this.ctx) this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      }
+    };
+
+    const CANVAS_ENGINE = {
+      canvas: null, ctx: null, animationId: null,
+      ropePosition: 0, targetPosition: 0,
+      init: function() {
+        this.canvas = document.getElementById('game-canvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
+        this.animate();
+      },
+      resize: function() {
+        const container = this.canvas.parentElement;
+        this.canvas.width = container.clientWidth - 40;
+        this.canvas.height = window.innerWidth <= 768 ? 300 : 400;
+      },
+      setRopePosition: function(position) { this.targetPosition = position; },
+      animate: function() {
+        const diff = this.targetPosition - this.ropePosition;
+        const speed = STATE.config.animationSpeed === 'slow' ? 0.02 : STATE.config.animationSpeed === 'fast' ? 0.15 : 0.08;
+        this.ropePosition += diff * speed;
+        this.draw();
+        this.animationId = requestAnimationFrame(() => this.animate());
+      },
+      draw: function() {
+        const ctx = this.ctx;
+        const width = this.canvas.width;
+        const height = this.canvas.height;
+        ctx.clearRect(0, 0, width, height);
+        this.drawBackground(ctx, width, height);
+        const mode = STATE.visual.visualMode;
+        if (mode === 'A') this.drawModeA(ctx, width, height);
+        else if (mode === 'B') this.drawModeB(ctx, width, height);
+        else if (mode === 'C') this.drawModeC(ctx, width, height);
+      },
+      drawBackground: function(ctx, width, height) {
+        const type = STATE.visual.backgroundType;
+        const value = STATE.visual.backgroundValue;
+        if (type === 'theme') {
+          const theme = BACKGROUNDS.themes[value];
+          const gradient = ctx.createLinearGradient(0, 0, width, height);
+          const colors = theme.gradient.match(/#[a-fA-F0-9]{6}/g);
+          if (colors) colors.forEach((color, i) => gradient.addColorStop(i / (colors.length - 1), color));
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, width, height);
+          ctx.font = '40px Arial';
+          ctx.globalAlpha = 0.3;
+          const emojis = theme.emojis.split('');
+          for (let i = 0; i < 20; i++) {
+            const emoji = emojis[i % emojis.length];
+            ctx.fillText(emoji, (i * 137) % width, (i * 97) % height);
+          }
+          ctx.globalAlpha = 1;
+        } else if (type === 'solid') {
+          ctx.fillStyle = value;
+          ctx.fillRect(0, 0, width, height);
+        } else if (type === 'gradient') {
+          const gradient = ctx.createLinearGradient(0, 0, width, height);
+          const colors = value.match(/#[a-fA-F0-9]{6}/g);
+          if (colors) colors.forEach((color, i) => gradient.addColorStop(i / (colors.length - 1), color));
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, width, height);
+        } else if (type === 'emoji') {
+          ctx.fillStyle = '#1e293b';
+          ctx.fillRect(0, 0, width, height);
+          ctx.font = '30px Arial';
+          ctx.globalAlpha = 0.3;
+          const emojis = value.split('');
+          for (let i = 0; i < 50; i++) {
+            ctx.fillText(emojis[i % emojis.length], (i * 89) % width, (i * 67) % height);
+          }
+          ctx.globalAlpha = 1;
+        }
+      },
+      drawModeA: function(ctx, width, height) {
+        const centerY = height / 2;
+        const ropeWidth = width * 0.8;
+        const ropeX = (width - ropeWidth) / 2;
+        const nodeSpacing = ropeWidth / (STATE.config.targetScore * 2);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(width / 2, centerY - 50);
+        ctx.lineTo(width / 2, centerY + 50);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        for (let i = -STATE.config.targetScore; i <= STATE.config.targetScore; i++) {
+          const x = width / 2 + (i * nodeSpacing);
+          ctx.fillStyle = i === 0 ? '#fbbf24' : 'rgba(255, 255, 255, 0.3)';
+          ctx.beginPath();
+          ctx.arc(x, centerY, i === 0 ? 8 : 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        const gradient = ctx.createLinearGradient(ropeX, centerY, ropeX + ropeWidth, centerY);
+        gradient.addColorStop(0, '#8b4513');
+        gradient.addColorStop(0.5, '#d2691e');
+        gradient.addColorStop(1, '#8b4513');
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 12;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(ropeX, centerY);
+        ctx.lineTo(ropeX + ropeWidth, centerY);
+        ctx.stroke();
+        const flagX = width / 2 + (this.ropePosition * nodeSpacing);
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.moveTo(flagX, centerY - 10);
+        ctx.lineTo(flagX + 20, centerY - 20);
+        ctx.lineTo(flagX + 20, centerY);
+        ctx.lineTo(flagX, centerY - 10);
+        ctx.fill();
+        ctx.strokeStyle = '#654321';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(flagX, centerY - 10);
+        ctx.lineTo(flagX, centerY + 30);
+        ctx.stroke();
+        ctx.font = 'bold 20px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = STATE.visual.team1Color;
+        ctx.fillText(STATE.config.gameMode === 'single' ? STATE.config.playerName : STATE.config.team1Name, ropeX, centerY - 60);
+        ctx.fillStyle = STATE.visual.team2Color;
+        ctx.fillText(STATE.config.team2Name, ropeX + ropeWidth, centerY - 60);
+      },
+      drawModeB: function(ctx, width, height) {
+        const barWidth = width * 0.8;
+        const barHeight = 60;
+        const barX = (width - barWidth) / 2;
+        const barY = height / 2 - barHeight / 2;
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillRect(barX, barY, barWidth, barHeight);
+        const progress = (this.ropePosition + STATE.config.targetScore) / (STATE.config.targetScore * 2);
+        const dividerX = barX + (barWidth * progress);
+        const gradient1 = ctx.createLinearGradient(barX, barY, dividerX, barY);
+        gradient1.addColorStop(0, STATE.visual.team1Color);
+        gradient1.addColorStop(1, STATE.visual.team1Color + '80');
+        ctx.fillStyle = gradient1;
+        ctx.fillRect(barX, barY, dividerX - barX, barHeight);
+        const gradient2 = ctx.createLinearGradient(dividerX, barY, barX + barWidth, barY);
+        gradient2.addColorStop(0, STATE.visual.team2Color + '80');
+        gradient2.addColorStop(1, STATE.visual.team2Color);
+        ctx.fillStyle = gradient2;
+        ctx.fillRect(dividerX, barY, barX + barWidth - dividerX, barHeight);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(barX, barY, barWidth, barHeight);
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(dividerX, barY);
+        ctx.lineTo(dividerX, barY + barHeight);
+        ctx.stroke();
+        for (let i = 1; i < STATE.config.targetScore * 2; i++) {
+          const x = barX + (barWidth * i / (STATE.config.targetScore * 2));
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(x, barY);
+          ctx.lineTo(x, barY + barHeight);
+          ctx.stroke();
+        }
+        ctx.font = 'bold 24px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'white';
+        ctx.fillText(STATE.config.gameMode === 'single' ? STATE.config.playerName : STATE.config.team1Name, barX + (dividerX - barX) / 2, barY - 20);
+        ctx.fillText(STATE.config.team2Name, dividerX + (barX + barWidth - dividerX) / 2, barY - 20);
+        ctx.font = 'bold 32px Arial';
+        ctx.fillStyle = STATE.visual.team1Color;
+        ctx.fillText(STATE.game.team1Score, barX + (dividerX - barX) / 2, barY + barHeight / 2 + 10);
+        ctx.fillStyle = STATE.visual.team2Color;
+        ctx.fillText(STATE.game.team2Score, dividerX + (barX + barWidth - dividerX) / 2, barY + barHeight / 2 + 10);
+      },
+      drawModeC: function(ctx, width, height) {
+        const centerY = height / 2;
+        const ropeWidth = width * 0.8;
+        const ropeX = (width - ropeWidth) / 2;
+        const nodeSpacing = ropeWidth / (STATE.config.targetScore * 2);
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.lineWidth = 14;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(ropeX, centerY + 5);
+        ctx.lineTo(ropeX + ropeWidth, centerY + 5);
+        ctx.stroke();
+        const tension = Math.abs(this.ropePosition) / STATE.config.targetScore;
+        const sag = 20 - (tension * 15);
+        const gradient = ctx.createLinearGradient(ropeX, centerY, ropeX + ropeWidth, centerY);
+        gradient.addColorStop(0, '#8b4513');
+        gradient.addColorStop(0.5, '#d2691e');
+        gradient.addColorStop(1, '#8b4513');
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 12;
+        ctx.beginPath();
+        ctx.moveTo(ropeX, centerY);
+        ctx.quadraticCurveTo(width / 2, centerY + sag, ropeX + ropeWidth, centerY);
+        ctx.stroke();
+        for (let i = -STATE.config.targetScore; i <= STATE.config.targetScore; i++) {
+          const x = width / 2 + (i * nodeSpacing);
+          const yOffset = Math.sin((x - ropeX) / ropeWidth * Math.PI) * sag;
+          ctx.fillStyle = i === 0 ? '#fbbf24' : 'rgba(255, 255, 255, 0.4)';
+          ctx.beginPath();
+          ctx.arc(x, centerY + yOffset, i === 0 ? 10 : 5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        const flagX = width / 2 + (this.ropePosition * nodeSpacing);
+        const flagY = centerY + Math.sin((flagX - ropeX) / ropeWidth * Math.PI) * sag;
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.moveTo(flagX, flagY - 10);
+        ctx.lineTo(flagX + 25, flagY - 25);
+        ctx.lineTo(flagX + 25, flagY - 5);
+        ctx.lineTo(flagX, flagY - 10);
+        ctx.fill();
+        ctx.strokeStyle = '#654321';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(flagX, flagY - 10);
+        ctx.lineTo(flagX, flagY + 40);
+        ctx.stroke();
+        ctx.font = 'bold 22px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = STATE.visual.team1Color;
+        ctx.fillText(STATE.config.gameMode === 'single' ? STATE.config.playerName : STATE.config.team1Name, ropeX, centerY - 80);
+        ctx.fillStyle = STATE.visual.team2Color;
+        ctx.fillText(STATE.config.team2Name, ropeX + ropeWidth, centerY - 80);
+      },
+      stop: function() {
+        if (this.animationId) cancelAnimationFrame(this.animationId);
+      }
+    };
+
+    const GAME = {
+      start: function() {
+        CONFIG.syncFromInputs();
+        STATE.game = {
+          team1Score: 0, team2Score: 0,
+          currentQuestionIndex: 0, questionsAsked: 0,
+          team1Correct: 0, team2Correct: 0,
+          team1Wrong: 0, team2Wrong: 0,
+          team1Streak: 0, team2Streak: 0,
+          team1BestStreak: 0, team2BestStreak: 0,
+          team1PowerUps: [], team2PowerUps: [],
+          team1Freeze: false, team2Freeze: false,
+          startTime: Date.now(),
+          answerPending: false,
+          currentAnswerCorrect: false,
+          usedQuestions: [],
+          pcAnswerTimeout: null
+        };
+        
+        const team1Name = STATE.config.gameMode === 'single' ? STATE.config.playerName : STATE.config.team1Name;
+        document.getElementById('game-team1-name').textContent = team1Name;
+        document.getElementById('game-team2-name').textContent = STATE.config.team2Name;
+        document.getElementById('team1-btn-name').textContent = team1Name;
+        document.getElementById('team1-btn-name2').textContent = team1Name;
+        document.getElementById('team2-btn-name').textContent = STATE.config.team2Name;
+        document.getElementById('team2-btn-name2').textContent = STATE.config.team2Name;
+        document.getElementById('game-team1-score').textContent = '0';
+        document.getElementById('game-team2-score').textContent = '0';
+        document.getElementById('game-team1-score').style.color = STATE.visual.team1Color;
+        document.getElementById('game-team2-score').style.color = STATE.visual.team2Color;
+        document.getElementById('team1-correct-btn').style.background = STATE.visual.team1Color;
+        document.getElementById('team1-wrong-btn').style.background = this.darkenColor(STATE.visual.team1Color);
+        document.getElementById('team2-correct-btn').style.background = STATE.visual.team2Color;
+        document.getElementById('team2-wrong-btn').style.background = this.darkenColor(STATE.visual.team2Color);
+        
+        // Ajustar UI para modo single player
+        const gameControls = document.getElementById('game-controls');
+        const team2Controls = document.getElementById('team2-controls');
+        if (STATE.config.gameMode === 'single') {
+          gameControls.classList.add('single-player');
+          team2Controls.style.display = 'none';
+        } else {
+          gameControls.classList.remove('single-player');
+          team2Controls.style.display = 'flex';
+        }
+        
+        this.setButtonsEnabled(false);
+        document.getElementById('next-question-btn').style.display = 'none';
+        
+        UI.showScreen('game');
+        setTimeout(() => {
+          CANVAS_ENGINE.init();
+          CONFETTI.init();
+          POWERUPS.renderIndicators();
+          this.loadNextQuestion();
+        }, 100);
+      },
+
+      darkenColor: function(color) { return color + '99'; },
+
+      loadNextQuestion: function() {
+        if (STATE.currentQuestions.length === 0) return;
+
+        let available = STATE.currentQuestions
+          .map((q, i) => ({ q, i }))
+          .filter(item => !STATE.game.usedQuestions.includes(item.i));
+        
+        if (available.length === 0) {
+          STATE.game.usedQuestions = [];
+          available = STATE.currentQuestions.map((q, i) => ({ q, i }));
+        }
+
+        if (STATE.config.questionMode !== 'mixed') {
+          const filtered = available.filter(item => item.q.type === STATE.config.questionMode);
+          if (filtered.length > 0) available = filtered;
+        }
+
+        const chosen = available[Math.floor(Math.random() * available.length)];
+        STATE.game.currentQuestionIndex = chosen.i;
+        STATE.game.usedQuestions.push(chosen.i);
+
+        const question = chosen.q;
+        document.getElementById('question-text').textContent = question.prompt;
+
+        const optionsContainer = document.getElementById('question-options');
+        const vocabArea = document.getElementById('vocab-answer-area');
+
+        if (question.type === 'multiple' && question.options && question.options.length > 0) {
+          optionsContainer.innerHTML = question.options.map((opt, i) => {
+            return `<button class="option-btn" onclick="GAME.selectOption(${i})">${opt}</button>`;
+          }).join('');
+          vocabArea.classList.remove('visible');
+        } else {
+          optionsContainer.innerHTML = '';
+          document.getElementById('vocab-answer-display').textContent = question.answer;
+          vocabArea.classList.add('visible');
+        }
+
+        const counterText = t('question_counter')
+          .replace('{current}', STATE.game.questionsAsked + 1)
+          .replace('{total}', STATE.currentQuestions.length);
+        document.getElementById('question-counter').textContent = counterText;
+
+        STATE.game.answerPending = false;
+        STATE.game.currentAnswerCorrect = false;
+        this.setButtonsEnabled(false);
+        document.getElementById('next-question-btn').style.display = 'none';
+        document.getElementById('pc-thinking').classList.remove('active');
+
+        // En modo single player, el PC responde automáticamente después de un tiempo
+        if (STATE.config.gameMode === 'single') {
+          this.schedulePCAnswer();
+        }
+      },
+
+      schedulePCAnswer: function() {
+        if (STATE.game.pcAnswerTimeout) clearTimeout(STATE.game.pcAnswerTimeout);
+        
+        const question = STATE.currentQuestions[STATE.game.currentQuestionIndex];
+        if (question.type !== 'multiple' || !question.options || question.options.length === 0) {
+          // Para vocabulario, el PC "responde" con su precisión
+          const delay = 2000 + Math.random() * 2000; // 2-4 segundos
+          document.getElementById('pc-thinking').classList.add('active');
+          
+          STATE.game.pcAnswerTimeout = setTimeout(() => {
+            document.getElementById('pc-thinking').classList.remove('active');
+            const accuracy = this.getPCAccuracy();
+            const pcCorrect = Math.random() < accuracy;
+            this.applyScore(2, pcCorrect);
+            this.setButtonsEnabled(true);
+            document.getElementById('next-question-btn').style.display = 'inline-block';
+          }, delay);
+        }
+      },
+
+      getPCAccuracy: function() {
+        const difficulty = STATE.config.pcDifficulty;
+        if (difficulty === 'easy') return 0.3;
+        if (difficulty === 'medium') return 0.6;
+        if (difficulty === 'hard') return 0.9;
+        return 0.6;
+      },
+
+      selectOption: function(index) {
+        if (STATE.game.answerPending) return;
+        
+        const question = STATE.currentQuestions[STATE.game.currentQuestionIndex];
+        const buttons = document.querySelectorAll('.option-btn');
+        const correctIndex = question.options.indexOf(question.answer);
+        const isCorrect = index === correctIndex;
+
+        buttons.forEach((btn, i) => {
+          btn.disabled = true;
+          if (i === correctIndex) btn.classList.add('correct');
+          else if (i === index) btn.classList.add('incorrect');
+        });
+
+        STATE.game.answerPending = true;
+        STATE.game.currentAnswerCorrect = isCorrect;
+
+        if (STATE.config.gameMode === 'teams') {
+          this.setButtonsEnabled(true);
+        } else {
+          // Modo single player: el jugador ya respondió, ahora el PC responde
+          AUDIO.play(isCorrect ? 'correct' : 'wrong');
+          
+          // Cancelar el timeout del PC si existe
+          if (STATE.game.pcAnswerTimeout) {
+            clearTimeout(STATE.game.pcAnswerTimeout);
+            document.getElementById('pc-thinking').classList.remove('active');
+          }
+          
+          // El PC responde después de un delay
+          const delay = 1500 + Math.random() * 1500; // 1.5-3 segundos
+          document.getElementById('pc-thinking').classList.add('active');
+          
+          STATE.game.pcAnswerTimeout = setTimeout(() => {
+            document.getElementById('pc-thinking').classList.remove('active');
+            
+            // El PC elige una opción
+            const accuracy = this.getPCAccuracy();
+            const pcCorrect = Math.random() < accuracy;
+            
+            // Mostrar visualmente qué opción eligió el PC
+            if (!pcCorrect) {
+              const wrongOptions = question.options.map((opt, i) => i).filter(i => i !== correctIndex);
+              const pcChoice = wrongOptions[Math.floor(Math.random() * wrongOptions.length)];
+              buttons[pcChoice].classList.add('pc-selected');
+            }
+            
+            this.applyScore(1, isCorrect);
+            this.applyScore(2, pcCorrect);
+            
+            document.getElementById('next-question-btn').style.display = 'inline-block';
+          }, delay);
+        }
+      },
+
+      confirmAnswer: function(team, correct) {
+        if (!STATE.game.answerPending) return;
+        
+        const question = STATE.currentQuestions[STATE.game.currentQuestionIndex];
+        const isMultiple = question.type === 'multiple' && question.options && question.options.length > 0;
+
+        let finalCorrect = correct;
+        if (isMultiple) {
+          finalCorrect = STATE.game.currentAnswerCorrect;
+        }
+
+        this.applyScore(team, finalCorrect);
+        STATE.game.answerPending = false;
+        this.setButtonsEnabled(false);
+        document.getElementById('next-question-btn').style.display = 'inline-block';
+      },
+
+      applyScore: function(team, correct) {
+        const targetScore = STATE.config.targetScore;
+        let moveAmount = 1;
+        let shieldUsed = false;
+        let freezeActive = false;
+
+        if (POWERUPS.has(team, 'double') && correct) {
+          moveAmount = 2;
+          POWERUPS.consume(team, 'double');
+        }
+        if (POWERUPS.has(team, 'steal') && correct) {
+          moveAmount = 2;
+          POWERUPS.consume(team, 'steal');
+        }
+        if (POWERUPS.has(team, 'shield') && !correct) {
+          shieldUsed = true;
+          POWERUPS.consume(team, 'shield');
+        }
+
+        const rivalTeam = team === 1 ? 2 : 1;
+        if (POWERUPS.has(rivalTeam, 'freeze') && correct) {
+          freezeActive = true;
+          POWERUPS.consume(rivalTeam, 'freeze');
+        }
+
+        if (correct) {
+          if (team === 1) {
+            STATE.game.team1Correct++;
+            STATE.game.team1Streak++;
+            if (STATE.game.team1Streak > STATE.game.team1BestStreak) {
+              STATE.game.team1BestStreak = STATE.game.team1Streak;
+            }
+            if (!freezeActive) {
+              STATE.game.team1Score += moveAmount;
+            }
+          } else {
+            STATE.game.team2Correct++;
+            STATE.game.team2Streak++;
+            if (STATE.game.team2Streak > STATE.game.team2BestStreak) {
+              STATE.game.team2BestStreak = STATE.game.team2Streak;
+            }
+            if (!freezeActive) {
+              STATE.game.team2Score += moveAmount;
+            }
+          }
+          if (team === 1) STATE.game.team2Streak = 0;
+          else STATE.game.team1Streak = 0;
+          
+          AUDIO.play('correct');
+        } else {
+          if (!shieldUsed) {
+            if (team === 1) {
+              STATE.game.team1Wrong++;
+              STATE.game.team1Streak = 0;
+              STATE.game.team1Score = Math.max(0, STATE.game.team1Score - 1);
+            } else {
+              STATE.game.team2Wrong++;
+              STATE.game.team2Streak = 0;
+              STATE.game.team2Score = Math.max(0, STATE.game.team2Score - 1);
+            }
+          }
+          AUDIO.play('wrong');
+        }
+
+        const newPosition = STATE.game.team2Score - STATE.game.team1Score;
+        const clampedPosition = Math.max(-targetScore, Math.min(targetScore, newPosition));
+        CANVAS_ENGINE.setRopePosition(clampedPosition);
+
+        document.getElementById('game-team1-score').textContent = STATE.game.team1Score;
+        document.getElementById('game-team2-score').textContent = STATE.game.team2Score;
+        this.updateStreakBadges();
+        POWERUPS.renderIndicators();
+
+        POWERUPS.checkStreak(team);
+
+        if (STATE.game.team1Score >= targetScore) {
+          setTimeout(() => this.showFinal(1), 800);
+        } else if (STATE.game.team2Score >= targetScore) {
+          setTimeout(() => this.showFinal(2), 800);
+        }
+      },
+
+      updateStreakBadges: function() {
+        const s1 = document.getElementById('team1-streak');
+        const s2 = document.getElementById('team2-streak');
+        if (STATE.game.team1Streak >= 2) {
+          s1.textContent = `🔥 ${STATE.game.team1Streak}`;
+          s1.style.display = 'inline-block';
+        } else {
+          s1.style.display = 'none';
+        }
+        if (STATE.game.team2Streak >= 2) {
+          s2.textContent = `🔥 ${STATE.game.team2Streak}`;
+          s2.style.display = 'inline-block';
+        } else {
+          s2.style.display = 'none';
+        }
+      },
+
+      setButtonsEnabled: function(enabled) {
+        ['team1-correct-btn', 'team1-wrong-btn', 'team2-correct-btn', 'team2-wrong-btn'].forEach(id => {
+          document.getElementById(id).disabled = !enabled;
+        });
+      },
+
+      nextQuestion: function() {
+        STATE.game.questionsAsked++;
+        POWERUPS.checkActivation();
+        this.loadNextQuestion();
+      },
+
+      speakQuestion: function() {
+        const questionText = document.getElementById('question-text').textContent;
+        if ('speechSynthesis' in window) {
+          speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(questionText);
+          utterance.lang = STATE.lang === 'es' ? 'es-ES' : 'en-US';
+          utterance.rate = 0.9;
+          speechSynthesis.speak(utterance);
+        }
+      },
+
+      showFinal: function(winnerTeam) {
+        CANVAS_ENGINE.stop();
+        const winnerName = winnerTeam === 1 ? (STATE.config.gameMode === 'single' ? STATE.config.playerName : STATE.config.team1Name) : STATE.config.team2Name;
+        const winnerColor = winnerTeam === 1 ? STATE.visual.team1Color : STATE.visual.team2Color;
+
+        document.getElementById('final-winner-name').textContent = t('final_winner').replace('{team}', winnerName);
+        document.getElementById('final-winner-name').style.background = `linear-gradient(135deg, ${winnerColor}, #fbbf24)`;
+        document.getElementById('final-winner-name').style.webkitBackgroundClip = 'text';
+        document.getElementById('final-winner-name').style.backgroundClip = 'text';
+        document.getElementById('final-subtitle').textContent = t('final_subtitle');
+
+        const elapsed = Math.floor((Date.now() - STATE.game.startTime) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+        const timeStr = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+        const t1Total = STATE.game.team1Correct + STATE.game.team1Wrong;
+        const t2Total = STATE.game.team2Correct + STATE.game.team2Wrong;
+        const t1Acc = t1Total > 0 ? Math.round((STATE.game.team1Correct / t1Total) * 100) : 0;
+        const t2Acc = t2Total > 0 ? Math.round((STATE.game.team2Correct / t2Total) * 100) : 0;
+
+        const team1Label = STATE.config.gameMode === 'single' ? STATE.config.playerName : STATE.config.team1Name;
+
+        document.getElementById('final-stats').innerHTML = `
+          <div class="stat-card team1" style="--team1-color: ${STATE.visual.team1Color};">
+            <div class="stat-label">${team1Label} - ${t('stat_correct')}</div>
+            <div class="stat-value" style="color: ${STATE.visual.team1Color};">${STATE.game.team1Correct}</div>
+          </div>
+          <div class="stat-card team1" style="--team1-color: ${STATE.visual.team1Color};">
+            <div class="stat-label">${team1Label} - ${t('stat_accuracy')}</div>
+            <div class="stat-value" style="color: ${STATE.visual.team1Color};">${t1Acc}%</div>
+          </div>
+          <div class="stat-card team1" style="--team1-color: ${STATE.visual.team1Color};">
+            <div class="stat-label">${team1Label} - ${t('stat_streak')}</div>
+            <div class="stat-value" style="color: ${STATE.visual.team1Color};">🔥 ${STATE.game.team1BestStreak}</div>
+          </div>
+          <div class="stat-card team2" style="--team2-color: ${STATE.visual.team2Color};">
+            <div class="stat-label">${STATE.config.team2Name} - ${t('stat_correct')}</div>
+            <div class="stat-value" style="color: ${STATE.visual.team2Color};">${STATE.game.team2Correct}</div>
+          </div>
+          <div class="stat-card team2" style="--team2-color: ${STATE.visual.team2Color};">
+            <div class="stat-label">${STATE.config.team2Name} - ${t('stat_accuracy')}</div>
+            <div class="stat-value" style="color: ${STATE.visual.team2Color};">${t2Acc}%</div>
+          </div>
+          <div class="stat-card team2" style="--team2-color: ${STATE.visual.team2Color};">
+            <div class="stat-label">${STATE.config.team2Name} - ${t('stat_streak')}</div>
+            <div class="stat-value" style="color: ${STATE.visual.team2Color};">🔥 ${STATE.game.team2BestStreak}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">${t('stat_questions')}</div>
+            <div class="stat-value">${STATE.game.questionsAsked + 1}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">${t('stat_time')}</div>
+            <div class="stat-value">⏱️ ${timeStr}</div>
+          </div>
+        `;
+
+        UI.showScreen('final');
+        AUDIO.play('victory');
+        CONFETTI.start([winnerColor, '#fbbf24', '#ffffff', STATE.visual.team1Color, STATE.visual.team2Color]);
+      },
+
+      rematch: function() {
+        this.start();
+      },
+
+      changeSet: function() {
+        CONFETTI.stop();
+        UI.showScreen('import');
+        UI.loadSavedSets();
+      },
+
+      endGame: function() {
+        if (!confirm(t('confirm_end_game'))) return;
+        this.showFinal(STATE.game.team1Score > STATE.game.team2Score ? 1 : 
+                       STATE.game.team2Score > STATE.game.team1Score ? 2 : 1);
+      }
+    };
+
+    const UI = {
+      showScreen: function(screenId) {
+        if (screenId !== 'config' && document.getElementById('screen-config').classList.contains('active')) {
+          CONFIG.syncFromInputs();
+        }
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        const screen = document.getElementById(`screen-${screenId}`);
+        if (screen) screen.classList.add('active');
+        if (screenId === 'visual') {
+          BACKGROUNDS.renderOptions();
+          COLORS.renderPresets();
+          this.updatePreview();
+        }
+        window.scrollTo(0, 0);
+      },
+      updatePreview: function() {
+        const preview = document.getElementById('visual-preview');
+        const team1 = document.getElementById('preview-team1');
+        const team2 = document.getElementById('preview-team2');
+        team1.style.background = STATE.visual.team1Color;
+        team2.style.background = STATE.visual.team2Color;
+        
+        const team1Name = STATE.config.gameMode === 'single' ? STATE.config.playerName : STATE.config.team1Name;
+        team1.textContent = team1Name;
+        team2.textContent = STATE.config.team2Name;
+        
+        const type = STATE.visual.backgroundType;
+        const value = STATE.visual.backgroundValue;
+        preview.style.background = '';
+        preview.style.backgroundImage = '';
+        preview.style.backgroundSize = '';
+        preview.style.backgroundPosition = '';
+        if (type === 'theme' || type === 'solid' || type === 'gradient') {
+          preview.style.background = BACKGROUNDS.getBackgroundStyle();
+        } else if (type === 'emoji') {
+          preview.style.background = '#1e293b';
+          preview.innerHTML = `
+            <div style="position: absolute; inset: 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; font-size: 2rem; opacity: 0.3; overflow: hidden;">
+              ${(value + ' ').repeat(50)}
+            </div>
+            <div class="preview-teams">
+              <div class="preview-team" id="preview-team1" style="background: ${STATE.visual.team1Color};">${team1Name}</div>
+              <div class="preview-vs">VS</div>
+              <div class="preview-team" id="preview-team2" style="background: ${STATE.visual.team2Color};">${STATE.config.team2Name}</div>
+            </div>
+          `;
+        } else if (type === 'url' || type === 'file') {
+          if (value) {
+            preview.style.backgroundImage = `url(${value})`;
+            preview.style.backgroundSize = 'cover';
+            preview.style.backgroundPosition =
+                        preview.style.backgroundImage = `url(${value})`;
+            preview.style.backgroundSize = 'cover';
+            preview.style.backgroundPosition = 'center';
+          } else {
+            preview.style.background = '#1e293b';
+          }
+        }
+      },
+      showPreview: function(questions) {
+        const section = document.getElementById('preview-section');
+        const list = document.getElementById('preview-list');
+        const maxShow = 5;
+        let html = questions.slice(0, maxShow).map((q, i) => {
+          const optionsText = q.options.length > 0 
+            ? `<br><small style="color: var(--text-muted);">Opciones: ${q.options.join(' · ')}</small>`
+            : '';
+          return `<div class="question-preview">
+            <strong>${i + 1}.</strong> ${q.prompt}
+            <br>→ <span style="color: var(--success);">${q.answer}</span>
+            ${optionsText}
+          </div>`;
+        }).join('');
+        if (questions.length > maxShow) {
+          html += `<div class="question-preview"><em>${t('and_more').replace('{n}', questions.length - maxShow)}</em></div>`;
+        }
+        list.innerHTML = html;
+        section.style.display = 'block';
+        section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      },
+      loadSavedSets: function() {
+        const section = document.getElementById('saved-sets-section');
+        const list = document.getElementById('saved-sets-list');
+        const sets = STORAGE.getAllSets();
+        if (Object.keys(sets).length === 0) {
+          list.innerHTML = `<p style="color: var(--text-muted);">${t('no_saved_sets')}</p>`;
+        } else {
+          list.innerHTML = Object.keys(sets).map(name => {
+            const count = sets[name].questions.length;
+            const safeName = name.replace(/'/g, "\\'");
+            return `<div class="set-item">
+              <span><strong>${name}</strong> <small style="color: var(--text-muted);">(${count})</small></span>
+              <div>
+                <button onclick="UI.loadSet('${safeName}')" style="background: var(--success); margin-right: 5px;">${t('load_btn')}</button>
+                <button onclick="UI.deleteSet('${safeName}')" style="background: var(--danger);">${t('delete_btn')}</button>
+              </div>
+            </div>`;
+          }).join('');
+        }
+        section.style.display = 'block';
+        this.showScreen('import');
+      },
+      loadSet: function(name) {
+        STATE.currentQuestions = STORAGE.loadSet(name);
+        STATE.currentSet = name;
+        if (STATE.currentQuestions) this.showPreview(STATE.currentQuestions);
+        document.getElementById('saved-sets-section').style.display = 'none';
+      },
+      deleteSet: function(name) {
+        if (confirm(t('confirm_delete'))) {
+          STORAGE.deleteSet(name);
+          this.loadSavedSets();
+        }
+      },
+      setLanguage: function(lang) {
+        STATE.lang = lang;
+        document.querySelectorAll('.lang-btn').forEach(b => {
+          b.classList.toggle('active', b.getAttribute('data-lang') === lang);
+        });
+        this.updateLanguage();
+        if (document.getElementById('screen-visual').classList.contains('active')) {
+          BACKGROUNDS.renderOptions();
+          COLORS.renderPresets();
+        }
+        // Actualizar el texto del indicador de PC pensando
+        document.getElementById('pc-thinking').textContent = t('pc_thinking');
+      },
+      switchTab: function(tabId) {
+        PARSERS.currentTab = tabId;
+        document.querySelectorAll('.tab').forEach(t => {
+          t.classList.toggle('active', t.getAttribute('data-tab') === tabId);
+        });
+        document.querySelectorAll('.tab-content').forEach(c => {
+          c.classList.toggle('active', c.id === `tab-${tabId}`);
+        });
+      },
+      updateLanguage: function() {
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+          const key = el.getAttribute('data-i18n');
+          const translation = t(key);
+          if (translation && translation !== key) el.textContent = translation;
+        });
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+      if (Object.keys(STORAGE.getAllSets()).length === 0) STORAGE.loadExampleSet();
+      UI.updateLanguage();
+    });
+  </script>
+</body>
+</html>

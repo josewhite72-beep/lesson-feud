@@ -268,7 +268,20 @@
       padding: 20px; background: var(--surface); border-radius: var(--radius);
       margin-bottom: 20px; box-shadow: var(--shadow); flex-wrap: wrap; gap: 15px;
     }
-    .team-info { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+    .team-info { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; padding: 8px; border-radius: 12px; transition: box-shadow 0.3s, background 0.3s; }
+    .team-info.active-turn {
+      box-shadow: 0 0 0 3px var(--turn-glow, var(--primary)), 0 0 18px var(--turn-glow, var(--primary));
+      animation: turnPulse 1.4s infinite;
+    }
+    @keyframes turnPulse {
+      0%, 100% { box-shadow: 0 0 0 3px var(--turn-glow, var(--primary)), 0 0 10px var(--turn-glow, var(--primary)); }
+      50% { box-shadow: 0 0 0 3px var(--turn-glow, var(--primary)), 0 0 22px var(--turn-glow, var(--primary)); }
+    }
+    .turn-indicator {
+      margin-top: 6px; padding: 4px 12px; border-radius: 20px;
+      font-size: 0.85rem; font-weight: bold; color: white;
+      box-shadow: var(--shadow);
+    }
     .team-name { font-size: 1.3rem; font-weight: bold; }
     .team-score {
       font-size: 2rem; font-weight: bold; padding: 8px 16px;
@@ -718,7 +731,7 @@
     <!-- ═══════════════ GAME SCREEN ═══════════════ -->
     <div id="screen-game" class="screen">
       <div class="game-header">
-        <div class="team-info">
+        <div class="team-info" id="team1-info">
           <div class="team-name" id="game-team1-name">Equipo 1</div>
           <div class="team-score" id="game-team1-score" style="color: #ef4444;">0</div>
           <div class="powerup-indicator" id="team1-powerups"></div>
@@ -727,9 +740,10 @@
         <div style="text-align: center;">
           <div style="font-size: 1.5rem; font-weight: bold;">VS</div>
           <div class="question-counter" id="question-counter">Pregunta 1 / 10</div>
+          <div class="turn-indicator" id="turn-indicator" style="display:none;"></div>
           <div class="pc-thinking" id="pc-thinking">🤖 PC pensando...</div>
         </div>
-        <div class="team-info">
+        <div class="team-info" id="team2-info">
           <div class="streak-badge" id="team2-streak" style="display:none;">🔥 0</div>
           <div class="powerup-indicator" id="team2-powerups"></div>
           <div class="team-score" id="game-team2-score" style="color: #3b82f6;">0</div>
@@ -837,6 +851,7 @@
         label_game_mode: "🎮 Modo de juego",
         mode_teams: "2 Equipos", mode_single: "1 Jugador vs PC",
         label_team1_name: "Nombre Equipo 1:", label_team2_name: "Nombre Equipo 2:",
+        turn_label: "Turno: {team}",
         label_player_name: "Nombre del jugador:",
         label_pc_difficulty: "Dificultad del PC:",
         difficulty_easy: "Fácil (30% precisión)",
@@ -914,6 +929,7 @@
         label_game_mode: "🎮 Game mode",
         mode_teams: "2 Teams", mode_single: "1 Player vs PC",
         label_team1_name: "Team 1 name:", label_team2_name: "Team 2 name:",
+        turn_label: "Turn: {team}",
         label_player_name: "Player name:",
         label_pc_difficulty: "PC difficulty:",
         difficulty_easy: "Easy (30% accuracy)",
@@ -1869,6 +1885,41 @@
       }
     };
 
+    const TTS_VOICES = {
+      list: [],
+      init: function() {
+        const load = () => { this.list = speechSynthesis.getVoices() || []; };
+        load();
+        if ('onvoiceschanged' in speechSynthesis) {
+          speechSynthesis.onvoiceschanged = load;
+        }
+      },
+      getBest: function(targetLang) {
+        if (!this.list || this.list.length === 0) this.list = speechSynthesis.getVoices() || [];
+        const voices = this.list;
+        if (!voices.length) return null;
+        if (targetLang === 'en-US') {
+          // 1) Voz nativa en-US exacta con nombre que indique EE.UU. (evita variantes "Latin English" instaladas en Android)
+          let v = voices.find(v => v.lang === 'en-US' && /US|United States/i.test(v.name));
+          if (v) return v;
+          // 2) Cualquier voz cuyo lang sea exactamente en-US
+          v = voices.find(v => v.lang === 'en-US');
+          if (v) return v;
+          // 3) Voces conocidas de buena calidad (Google/Microsoft) en inglés
+          v = voices.find(v => /en/i.test(v.lang) && /Google US English|Microsoft.*English \(United States\)|Samantha|Alex/i.test(v.name));
+          if (v) return v;
+          // 4) Cualquier voz en inglés como último recurso
+          v = voices.find(v => /^en/i.test(v.lang));
+          return v || null;
+        } else {
+          let v = voices.find(v => v.lang === targetLang);
+          if (v) return v;
+          v = voices.find(v => /^es/i.test(v.lang));
+          return v || null;
+        }
+      }
+    };
+
     const GAME = {
       start: function() {
         CONFIG.syncFromInputs();
@@ -1978,10 +2029,43 @@
         document.getElementById('next-question-btn').style.display = 'none';
         document.getElementById('pc-thinking').classList.remove('active');
 
+        // Preguntas de vocabulario/oral en modo equipos: no hay paso de "seleccionar opción",
+        // el maestro valida directo con los botones Correcto/Falló, así que deben estar activos ya.
+        const isVocabType = !(question.type === 'multiple' && question.options && question.options.length > 0);
+        if (isVocabType && STATE.config.gameMode !== 'single') {
+          STATE.game.answerPending = true;
+          this.setButtonsEnabled(true);
+        }
+
+        this.updateTurnIndicator();
+
         // En modo single player, el PC responde automáticamente después de un tiempo
         if (STATE.config.gameMode === 'single') {
           this.schedulePCAnswer();
         }
+      },
+
+      updateTurnIndicator: function() {
+        const indicator = document.getElementById('turn-indicator');
+        const team1Info = document.getElementById('team1-info');
+        const team2Info = document.getElementById('team2-info');
+        if (!indicator || !team1Info || !team2Info) return;
+        if (STATE.config.gameMode === 'single') {
+          indicator.style.display = 'none';
+          team1Info.classList.remove('active-turn');
+          team2Info.classList.remove('active-turn');
+          return;
+        }
+        const turn = (STATE.game.questionsAsked % 2 === 0) ? 1 : 2;
+        const teamName = turn === 1 ? STATE.config.team1Name : STATE.config.team2Name;
+        const teamColor = turn === 1 ? STATE.visual.team1Color : STATE.visual.team2Color;
+        indicator.style.display = 'inline-block';
+        indicator.style.background = teamColor;
+        indicator.textContent = '🎯 ' + t('turn_label').replace('{team}', teamName);
+        team1Info.classList.toggle('active-turn', turn === 1);
+        team2Info.classList.toggle('active-turn', turn === 2);
+        team1Info.style.setProperty('--turn-glow', STATE.visual.team1Color);
+        team2Info.style.setProperty('--turn-glow', STATE.visual.team2Color);
       },
 
       schedulePCAnswer: function() {
@@ -2208,9 +2292,12 @@
         const questionText = document.getElementById('question-text').textContent;
         if ('speechSynthesis' in window) {
           speechSynthesis.cancel();
+          const targetLang = STATE.lang === 'es' ? 'es-ES' : 'en-US';
           const utterance = new SpeechSynthesisUtterance(questionText);
-          utterance.lang = STATE.lang === 'es' ? 'es-ES' : 'en-US';
+          utterance.lang = targetLang;
           utterance.rate = 0.9;
+          const voice = TTS_VOICES.getBest(targetLang);
+          if (voice) utterance.voice = voice;
           speechSynthesis.speak(utterance);
         }
       },
@@ -2446,6 +2533,7 @@
     document.addEventListener('DOMContentLoaded', function() {
       if (Object.keys(STORAGE.getAllSets()).length === 0) STORAGE.loadExampleSet();
       UI.updateLanguage();
+      if ('speechSynthesis' in window) TTS_VOICES.init();
     });
   </script>
 </body>

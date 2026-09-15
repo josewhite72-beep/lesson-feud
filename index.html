@@ -384,6 +384,41 @@
     .score-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 15px 40px rgba(0,0,0,0.4); }
     .score-btn:active:not(:disabled) { transform: translateY(0); }
     .score-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .team-answer-block {
+      position: relative; display: flex; gap: 14px; justify-content: center; align-items: center;
+      padding: 16px; border-radius: var(--radius);
+      background: var(--surface-light); border: 3px solid var(--team-color, #888);
+      transition: opacity 0.3s, filter 0.3s, box-shadow 0.3s;
+    }
+    .team-answer-block:not(.dimmed) {
+      box-shadow: 0 0 0 3px var(--team-color, #888), 0 0 16px var(--team-color, #888);
+    }
+    .team-answer-block.dimmed { opacity: 0.32; filter: grayscale(55%); pointer-events: none; }
+    .icon-btn {
+      width: 68px; height: 68px; min-width: 68px; border-radius: 50%; border: none;
+      font-size: 2.1rem; font-weight: bold; color: white; cursor: pointer;
+      box-shadow: var(--shadow); transition: transform 0.15s;
+    }
+    .icon-btn.correct { background: #22c55e; }
+    .icon-btn.wrong { background: #ef4444; }
+    .icon-btn:hover:not(:disabled) { transform: scale(1.08); }
+    .icon-btn:active:not(:disabled) { transform: scale(0.94); }
+    .icon-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .answer-feedback {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 3.2rem; font-weight: bold; border-radius: var(--radius);
+      opacity: 0; pointer-events: none; background: rgba(0,0,0,0.78);
+    }
+    .answer-feedback.show-correct { color: #4ade80; animation: feedbackPop 0.9s ease; }
+    .answer-feedback.show-wrong { color: #f87171; animation: feedbackPop 0.9s ease; }
+    @keyframes feedbackPop {
+      0% { opacity: 0; transform: scale(0.3); }
+      30% { opacity: 1; transform: scale(1.15); }
+      55% { opacity: 1; transform: scale(1); }
+      80% { opacity: 1; }
+      100% { opacity: 0; transform: scale(1); }
+    }
     .game-footer {
       display: flex; justify-content: space-between; align-items: center;
       padding: 15px; background: var(--surface); border-radius: var(--radius);
@@ -767,21 +802,19 @@
       </div>
 
       <div class="game-controls" id="game-controls">
-        <div class="team-controls">
-          <button class="score-btn" id="team1-correct-btn" style="background: #ef4444;" onclick="GAME.confirmAnswer(1, true)" disabled>
-            ✅ <span data-i18n="btn_correct">Correcto</span> <span id="team1-btn-name">Equipo 1</span>
-          </button>
-          <button class="score-btn" id="team1-wrong-btn" style="background: #991b1b;" onclick="GAME.confirmAnswer(1, false)" disabled>
-            ❌ <span data-i18n="btn_wrong">Falló</span> <span id="team1-btn-name2">Equipo 1</span>
-          </button>
+        <div class="team-controls" id="team1-controls">
+          <div class="team-answer-block" id="team1-answer-block">
+            <button class="icon-btn correct" id="team1-correct-btn" onclick="GAME.confirmAnswer(1, true)" disabled title="Correcto">✓</button>
+            <button class="icon-btn wrong" id="team1-wrong-btn" onclick="GAME.confirmAnswer(1, false)" disabled title="Falló">✗</button>
+            <div class="answer-feedback" id="team1-feedback"></div>
+          </div>
         </div>
         <div class="team-controls" id="team2-controls">
-          <button class="score-btn" id="team2-correct-btn" style="background: #3b82f6;" onclick="GAME.confirmAnswer(2, true)" disabled>
-            ✅ <span data-i18n="btn_correct">Correcto</span> <span id="team2-btn-name">Equipo 2</span>
-          </button>
-          <button class="score-btn" id="team2-wrong-btn" style="background: #1e40af;" onclick="GAME.confirmAnswer(2, false)" disabled>
-            ❌ <span data-i18n="btn_wrong">Falló</span> <span id="team2-btn-name2">Equipo 2</span>
-          </button>
+          <div class="team-answer-block" id="team2-answer-block">
+            <button class="icon-btn correct" id="team2-correct-btn" onclick="GAME.confirmAnswer(2, true)" disabled title="Correcto">✓</button>
+            <button class="icon-btn wrong" id="team2-wrong-btn" onclick="GAME.confirmAnswer(2, false)" disabled title="Falló">✗</button>
+            <div class="answer-feedback" id="team2-feedback"></div>
+          </div>
         </div>
       </div>
 
@@ -1942,18 +1975,14 @@
         const team1Name = STATE.config.gameMode === 'single' ? STATE.config.playerName : STATE.config.team1Name;
         document.getElementById('game-team1-name').textContent = team1Name;
         document.getElementById('game-team2-name').textContent = STATE.config.team2Name;
-        document.getElementById('team1-btn-name').textContent = team1Name;
-        document.getElementById('team1-btn-name2').textContent = team1Name;
-        document.getElementById('team2-btn-name').textContent = STATE.config.team2Name;
-        document.getElementById('team2-btn-name2').textContent = STATE.config.team2Name;
         document.getElementById('game-team1-score').textContent = '0';
         document.getElementById('game-team2-score').textContent = '0';
         document.getElementById('game-team1-score').style.color = STATE.visual.team1Color;
         document.getElementById('game-team2-score').style.color = STATE.visual.team2Color;
-        document.getElementById('team1-correct-btn').style.background = STATE.visual.team1Color;
-        document.getElementById('team1-wrong-btn').style.background = this.darkenColor(STATE.visual.team1Color);
-        document.getElementById('team2-correct-btn').style.background = STATE.visual.team2Color;
-        document.getElementById('team2-wrong-btn').style.background = this.darkenColor(STATE.visual.team2Color);
+        document.getElementById('team1-answer-block').style.setProperty('--team-color', STATE.visual.team1Color);
+        document.getElementById('team2-answer-block').style.setProperty('--team-color', STATE.visual.team2Color);
+        document.getElementById('team1-feedback').classList.remove('show-correct', 'show-wrong');
+        document.getElementById('team2-feedback').classList.remove('show-correct', 'show-wrong');
         
         // Ajustar UI para modo single player
         const gameControls = document.getElementById('game-controls');
@@ -2082,6 +2111,7 @@
             const accuracy = this.getPCAccuracy();
             const pcCorrect = Math.random() < accuracy;
             this.applyScore(2, pcCorrect);
+            this.showAnswerFeedback(2, pcCorrect);
             this.setButtonsEnabled(true);
             document.getElementById('next-question-btn').style.display = 'inline-block';
           }, delay);
@@ -2145,6 +2175,8 @@
             
             this.applyScore(1, isCorrect);
             this.applyScore(2, pcCorrect);
+            this.showAnswerFeedback(1, isCorrect);
+            this.showAnswerFeedback(2, pcCorrect);
             
             document.getElementById('next-question-btn').style.display = 'inline-block';
           }, delay);
@@ -2163,6 +2195,7 @@
         }
 
         this.applyScore(team, finalCorrect);
+        this.showAnswerFeedback(team, finalCorrect);
         STATE.game.answerPending = false;
         this.setButtonsEnabled(false);
         document.getElementById('next-question-btn').style.display = 'inline-block';
@@ -2277,9 +2310,34 @@
       },
 
       setButtonsEnabled: function(enabled) {
-        ['team1-correct-btn', 'team1-wrong-btn', 'team2-correct-btn', 'team2-wrong-btn'].forEach(id => {
-          document.getElementById(id).disabled = !enabled;
+        const isTeams = STATE.config.gameMode !== 'single';
+        const turn = (STATE.game.questionsAsked % 2 === 0) ? 1 : 2;
+        [1, 2].forEach(teamNum => {
+          const allow = enabled && (!isTeams || teamNum === turn);
+          document.getElementById('team' + teamNum + '-correct-btn').disabled = !allow;
+          document.getElementById('team' + teamNum + '-wrong-btn').disabled = !allow;
         });
+        this.updateAnswerBlocksDimming();
+      },
+
+      updateAnswerBlocksDimming: function() {
+        const isTeams = STATE.config.gameMode !== 'single';
+        const turn = (STATE.game.questionsAsked % 2 === 0) ? 1 : 2;
+        const b1 = document.getElementById('team1-answer-block');
+        const b2 = document.getElementById('team2-answer-block');
+        if (!b1 || !b2) return;
+        if (!isTeams) { b1.classList.remove('dimmed'); b2.classList.remove('dimmed'); return; }
+        b1.classList.toggle('dimmed', turn !== 1);
+        b2.classList.toggle('dimmed', turn !== 2);
+      },
+
+      showAnswerFeedback: function(team, correct) {
+        const el = document.getElementById('team' + team + '-feedback');
+        if (!el) return;
+        el.classList.remove('show-correct', 'show-wrong');
+        void el.offsetWidth;
+        el.textContent = correct ? '✓' : '✗';
+        el.classList.add(correct ? 'show-correct' : 'show-wrong');
       },
 
       nextQuestion: function() {
@@ -2292,7 +2350,9 @@
         const questionText = document.getElementById('question-text').textContent;
         if ('speechSynthesis' in window) {
           speechSynthesis.cancel();
-          const targetLang = STATE.lang === 'es' ? 'es-ES' : 'en-US';
+          // El prompt de la pregunta (vocabulario/oración) siempre está en inglés,
+          // sin importar el idioma de la interfaz (menús). No usar STATE.lang aquí.
+          const targetLang = 'en-US';
           const utterance = new SpeechSynthesisUtterance(questionText);
           utterance.lang = targetLang;
           utterance.rate = 0.9;
